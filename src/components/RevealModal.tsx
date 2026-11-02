@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAccount, useWriteContract, useWaitForTransactionReceipt, useSwitchChain } from 'wagmi';
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useSwitchChain, useBalance } from 'wagmi';
 import confetti from 'canvas-confetti';
 import {
   X,
@@ -19,6 +19,7 @@ import {
   ArrowRight,
   Flame,
   Dna,
+  Coins,
 } from 'lucide-react';
 import { Personality, RevealStatus } from '../types';
 import { getPersonalityById } from '../lib/random';
@@ -26,6 +27,8 @@ import { PERSONALITIES } from '../data/personalities';
 import {
   CONTRACT_ABI,
   BASE_CHAIN_ID,
+  CONTRACT_NAME,
+  CONTRACT_FUNCTION_NAME,
   getStoredContractAddress,
   isContractConfigured,
   setStoredContractAddress,
@@ -36,15 +39,13 @@ import {
   getBaseScanTxUrl,
   shortenAddress,
 } from '../lib/blockchain';
-import { saveChainEncounter } from '../lib/encountersStorage';
-import { recordProfileSelection } from '../lib/anonymousAnalytics';
 import { PortraitImage } from './PortraitImage';
 import { getInitials } from '../lib/utils';
 
 interface RevealModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onEncounterSaved: () => void;
+  onEncounterSaved?: () => void;
   onOpenWalletModal: () => void;
   onOpenContractModal: () => void;
 }
@@ -52,12 +53,15 @@ interface RevealModalProps {
 export const RevealModal: React.FC<RevealModalProps> = ({
   isOpen,
   onClose,
-  onEncounterSaved,
   onOpenWalletModal,
   onOpenContractModal,
 }) => {
   const { isConnected, chain, address } = useAccount();
   const { switchChain, isPending: isSwitchPending } = useSwitchChain();
+  const { data: balanceData } = useBalance({
+    address,
+    chainId: BASE_CHAIN_ID,
+  });
 
   const [contractAddress, setContractAddress] = useState<`0x${string}` | ''>(getStoredContractAddress());
   const [hasContract, setHasContract] = useState<boolean>(isContractConfigured());
@@ -74,7 +78,6 @@ export const RevealModal: React.FC<RevealModalProps> = ({
 
   // Kinetic shuffling slot preview
   const [shufflingName, setShufflingName] = useState('Albert Einstein');
-  const [shufflingCategory, setShufflingCategory] = useState('Scientists & Inventors');
 
   // Wagmi contract write
   const { writeContractAsync, isPending: isWritePending } = useWriteContract();
@@ -91,7 +94,7 @@ export const RevealModal: React.FC<RevealModalProps> = ({
     chainId: BASE_CHAIN_ID,
   });
 
-  // Keep contract address state synchronized with storage
+  // Keep contract address state synchronized with configuration
   useEffect(() => {
     if (isOpen) {
       const active = getStoredContractAddress();
@@ -108,49 +111,55 @@ export const RevealModal: React.FC<RevealModalProps> = ({
       interval = setInterval(() => {
         const rand = PERSONALITIES[Math.floor(Math.random() * PERSONALITIES.length)];
         setShufflingName(rand.name);
-        setShufflingCategory(rand.category);
       }, 85);
     }
     return () => clearInterval(interval);
   }, [status]);
 
-  // Process transaction confirmation strictly on Base Mainnet
+  /**
+   * Process transaction confirmation strictly on Base Mainnet.
+   * Only AFTER confirmed transaction receipt with status === 'success'
+   * do we randomly select and reveal the personality image.
+   */
   useEffect(() => {
     if (isTxSuccess && txReceipt && currentTxHash && status === 'confirming') {
-      if (txReceipt.status === 'reverted') {
+      // 1. Strictly verify on-chain transaction receipt status
+      if (txReceipt.status !== 'success') {
         setStatus('failed');
-        setErrorMessage('Transaction reverted on Base Mainnet. Protocol rule: No personality selection was made.');
+        setRevealedPersonality(null);
+        setErrorMessage('Transaction reverted on Base Mainnet. Protocol rule: No personality was revealed.');
         return;
       }
 
-      // CRITICAL PRIVACY ARCHITECTURE:
-      // Derive the personality ID strictly OFF-CHAIN using the confirmed transaction hash as entropy.
-      // The personality ID is never leaked or stored on the public blockchain ledger!
+      // 2. Only AFTER successful transaction confirmation:
+      // Randomly select ONE character image from the 50 characters.
+      // We derive the character using entropy from the confirmed Base transaction hash
+      // (guaranteeing fair, deterministic, tamper-proof randomness across the 50 characters)
       const personalityId = derivePersonalityIdFromTxHash(currentTxHash);
       const found = getPersonalityById(personalityId);
 
       if (found) {
         setRevealedPersonality(found);
         setStatus('revealed');
-        recordProfileSelection(found.id);
+        setErrorMessage(null);
 
-        if (address) {
-          saveChainEncounter(address, found.id, currentTxHash);
-          onEncounterSaved();
-        }
+        // PRIVACY RULE: Do NOT store user info, selected image IDs, selection history, or user stats!
+        // We strictly avoid writing selected personality IDs or user histories to persistent storage.
 
         triggerElectricConfetti();
       } else {
         setStatus('failed');
-        setErrorMessage('Could not derive personality from confirmed transaction.');
+        setRevealedPersonality(null);
+        setErrorMessage('Failed to select personality from confirmed transaction.');
       }
     } else if (isTxError && status === 'confirming') {
       setStatus('failed');
+      setRevealedPersonality(null);
       setErrorMessage(
         receiptError?.message || 'Transaction failed to confirm on Base Mainnet. Protocol rule: No personality was revealed.'
       );
     }
-  }, [isTxSuccess, isTxError, txReceipt, currentTxHash, status]);
+  }, [isTxSuccess, isTxError, txReceipt, currentTxHash, status, receiptError]);
 
   const triggerElectricConfetti = () => {
     try {
@@ -167,29 +176,51 @@ export const RevealModal: React.FC<RevealModalProps> = ({
   };
 
   /**
-   * Executes real on-chain transaction on Base Mainnet.
-   * Users pay ONLY standard Base network gas (0 ETH transferred).
-   * No application fee, no subscriptions.
+   * Mandatory Base Mainnet Transaction:
+   * Sequence:
+   * 1. Check wallet connection
+   * 2. Check network is Base Mainnet (8453)
+   * 3. Check contract address is configured (no simulation)
+   * 4. Check ETH balance for gas
+   * 5. Call gm() on LuckyFace contract
+   * 6. Open Rabby / EIP-1193 wallet for transaction confirmation
+   * 7. Wait for confirmed receipt with status === 'success'
    */
   const handleInitiateOnChainSelection = async () => {
+    // Prevent duplicate clicks while pending
+    if (isWritePending || isTxConfirming || status === 'waiting_wallet' || status === 'confirming') {
+      return;
+    }
+
+    // Step 1: Wallet connection check
     if (!isConnected) {
       onOpenWalletModal();
       return;
     }
 
+    // Step 2: Network check (Base Mainnet 8453)
     if (chain?.id !== BASE_CHAIN_ID) {
       try {
         await switchChain({ chainId: BASE_CHAIN_ID });
-      } catch (err: any) {
+      } catch {
         setErrorMessage('Please switch your wallet to Base Mainnet (Chain ID 8453) to proceed.');
         setStatus('failed');
       }
       return;
     }
 
+    // Step 3: Contract address check
     const activeContract = getStoredContractAddress();
     if (!activeContract) {
-      setErrorMessage('A Base Mainnet contract address is required before initiating an on-chain selection.');
+      setErrorMessage('Smart contract deployment required: The LuckyFace contract address has not been configured yet. Every selection requires a real transaction calling gm() on Base Mainnet. Simulated transactions are not permitted.');
+      setStatus('failed');
+      return;
+    }
+
+    // Step 4: Gas balance check
+    if (balanceData && balanceData.value === 0n) {
+      setErrorMessage('Insufficient ETH balance for gas: ETH is required for Base network gas to execute gm(). A tiny fraction of ETH (< $0.001) is needed.');
+      setStatus('failed');
       return;
     }
 
@@ -199,29 +230,52 @@ export const RevealModal: React.FC<RevealModalProps> = ({
       setCurrentTxHash(null);
       setRevealedPersonality(null);
 
-      // Call lightweight recordSelection on Base Mainnet
+      // Step 5: Send transaction calling gm() on the LuckyFace contract
+      // Users pay ONLY normal Base network gas (0 ETH transferred)
       const hash = await writeContractAsync({
         address: activeContract,
         abi: CONTRACT_ABI,
-        functionName: 'recordSelection',
+        functionName: 'gm',
         args: [],
       });
 
       setCurrentTxHash(hash);
       setStatus('confirming');
     } catch (err: any) {
-      setStatus('failed');
-      if (
+      // Step 4 in prompt: Failure Handling
+      const isUserRejection =
+        err?.name === 'UserRejectedRequestError' ||
         err?.message?.toLowerCase().includes('user rejected') ||
-        err?.message?.toLowerCase().includes('denied') ||
-        err?.cause?.message?.toLowerCase().includes('user rejected')
-      ) {
-        setErrorMessage('Transaction was rejected in your wallet. Protocol Rule: No personality was revealed.');
-      } else {
-        setErrorMessage(
-          err?.shortMessage || err?.message || 'Transaction initiation failed on Base Mainnet.'
-        );
+        err?.message?.toLowerCase().includes('user denied') ||
+        err?.message?.toLowerCase().includes('denied transaction') ||
+        err?.cause?.message?.toLowerCase().includes('user rejected');
+
+      if (isUserRejection) {
+        // Return interface to initial state
+        setStatus('idle');
+        setCurrentTxHash(null);
+        setRevealedPersonality(null);
+        setErrorMessage('Transaction was cancelled in your wallet. Initial state restored.');
+        return;
       }
+
+      const isInsufficientFunds =
+        err?.message?.toLowerCase().includes('insufficient funds') ||
+        err?.message?.toLowerCase().includes('exceeds balance') ||
+        err?.cause?.message?.toLowerCase().includes('insufficient funds');
+
+      if (isInsufficientFunds) {
+        setStatus('failed');
+        setRevealedPersonality(null);
+        setErrorMessage('Insufficient ETH balance for Base network gas. A small amount of ETH on Base Mainnet is required to pay network transaction fees.');
+        return;
+      }
+
+      setStatus('failed');
+      setRevealedPersonality(null);
+      setErrorMessage(
+        err?.shortMessage || err?.message || 'Transaction initiation failed on Base Mainnet.'
+      );
     }
   };
 
@@ -239,6 +293,7 @@ export const RevealModal: React.FC<RevealModalProps> = ({
       setHasContract(true);
       setQuickAddressError(null);
       setErrorMessage(null);
+      setStatus('idle');
     } else {
       setQuickAddressError('Failed to save address.');
     }
@@ -270,6 +325,8 @@ export const RevealModal: React.FC<RevealModalProps> = ({
 
   if (!isOpen) return null;
 
+  const isPendingTx = isWritePending || isTxConfirming || status === 'waiting_wallet' || status === 'confirming';
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/85 backdrop-blur-xl">
       <div className="relative w-full max-w-3xl bg-[#060C1E] border border-[#0052FF]/30 rounded-3xl shadow-2xl shadow-[#0052FF]/20 overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200">
@@ -288,7 +345,8 @@ export const RevealModal: React.FC<RevealModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            disabled={isPendingTx}
+            className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer disabled:opacity-40"
             aria-label="Close modal"
           >
             <X className="w-5 h-5" />
@@ -309,7 +367,7 @@ export const RevealModal: React.FC<RevealModalProps> = ({
                   Connect Wallet to Proceed
                 </h3>
                 <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
-                  Every personality selection requires a verified transaction on <strong>Base Mainnet</strong>. Users pay ONLY normal Base network gas (approx. &lt; $0.001). Zero platform fees.
+                  Every personality selection requires a verified transaction on <strong>Base Mainnet</strong> calling <code className="text-blue-300 font-mono">gm()</code>. Compatible with Rabby Wallet, MetaMask, and all EIP-1193 wallets. Users pay ONLY normal Base network gas (approx. &lt; $0.001). Zero platform fees.
                 </p>
               </div>
 
@@ -319,7 +377,7 @@ export const RevealModal: React.FC<RevealModalProps> = ({
                   className="w-full py-4 px-6 bg-[#0052FF] hover:bg-blue-600 text-white font-display text-sm font-bold uppercase tracking-wider rounded-xl shadow-lg shadow-[#0052FF]/25 flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.01]"
                 >
                   <Wallet className="w-4 h-4" />
-                  <span>Connect EVM Wallet</span>
+                  <span>Connect EVM / Rabby Wallet</span>
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </button>
               </div>
@@ -364,21 +422,21 @@ export const RevealModal: React.FC<RevealModalProps> = ({
           {isConnected && chain?.id === BASE_CHAIN_ID && !hasContract && (
             <div className="space-y-6 max-w-lg mx-auto py-4">
               <div className="text-center space-y-2">
-                <div className="w-14 h-14 rounded-2xl bg-[#0052FF]/15 border border-[#0052FF]/30 flex items-center justify-center mx-auto mb-3">
-                  <ShieldCheck className="w-7 h-7 text-[#0052FF]" />
+                <div className="w-14 h-14 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center mx-auto mb-3">
+                  <ShieldCheck className="w-7 h-7 text-amber-400" />
                 </div>
                 <h3 className="font-display text-2xl font-black text-white">
                   Base Mainnet Contract Required
                 </h3>
                 <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
-                  Per the protocol rule, every selection must execute a real on-chain transaction. Enter your deployed Base contract address below or view the deployment guide.
+                  Mandatory on-chain rule: Every personality selection must complete a real blockchain transaction calling <code className="text-blue-300 font-mono">gm()</code> on the LuckyFace contract. Simulated or demo transactions are not permitted.
                 </p>
               </div>
 
               {/* Quick Input Form */}
               <form onSubmit={handleQuickAddressSave} className="space-y-3 p-4 rounded-2xl bg-white/[0.02] border border-white/10">
                 <label className="block text-xs font-semibold text-slate-300 uppercase font-display tracking-wider">
-                  Contract Address (Base Mainnet):
+                  Deployed LuckyFace Contract Address:
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -407,7 +465,7 @@ export const RevealModal: React.FC<RevealModalProps> = ({
                   className="text-xs text-blue-300 hover:text-white underline inline-flex items-center gap-1.5 cursor-pointer font-medium"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
-                  <span>Open Remix IDE Deployment Guide & Solidity Code</span>
+                  <span>Open Remix IDE Deployment Guide & LuckyFace.sol Code</span>
                 </button>
               </div>
             </div>
@@ -428,26 +486,37 @@ export const RevealModal: React.FC<RevealModalProps> = ({
                   Meet Your Destiny on Base
                 </h3>
                 <p className="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-md mx-auto">
-                  Click below to execute a lightweight on-chain selection on <strong>Base Mainnet</strong>. Your transaction will reveal one of 50 extraordinary historical minds.
+                  Click below to execute a real transaction on <strong>Base Mainnet</strong> calling <code className="text-blue-300 font-mono">gm()</code> on the LuckyFace contract. Your transaction will reveal one of 50 extraordinary historical figures once confirmed.
                 </p>
               </div>
 
-              {/* Fee & Privacy Spec Breakdown */}
+              {errorMessage && (
+                <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200 text-left flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  <span>{errorMessage}</span>
+                </div>
+              )}
+
+              {/* Fee & Spec Breakdown */}
               <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10 text-left space-y-2.5 text-xs text-slate-300 font-mono">
                 <div className="flex justify-between items-center pb-2 border-b border-white/5">
                   <span className="text-slate-400">Application Fee:</span>
                   <span className="text-emerald-400 font-bold">0.0000 ETH (Free)</span>
                 </div>
                 <div className="flex justify-between items-center pb-2 border-b border-white/5">
-                  <span className="text-slate-400">Network / Gas:</span>
-                  <span className="text-blue-300">Standard Base Gas (~$0.0005)</span>
+                  <span className="text-slate-400">Smart Contract:</span>
+                  <span className="text-white font-semibold">LuckyFace</span>
                 </div>
                 <div className="flex justify-between items-center pb-2 border-b border-white/5">
-                  <span className="text-slate-400">Privacy Guarantee:</span>
-                  <span className="text-emerald-300">Personality ID stored OFF-CHAIN</span>
+                  <span className="text-slate-400">Function Call:</span>
+                  <span className="text-blue-300 font-bold">gm()</span>
+                </div>
+                <div className="flex justify-between items-center pb-2 border-b border-white/5">
+                  <span className="text-slate-400">Network Gas:</span>
+                  <span className="text-blue-300">Standard Base Gas (~$0.0005)</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-400">Contract:</span>
+                  <span className="text-slate-400">Contract Address:</span>
                   <span className="text-slate-300">{shortenAddress(contractAddress)}</span>
                 </div>
               </div>
@@ -455,14 +524,18 @@ export const RevealModal: React.FC<RevealModalProps> = ({
               <div className="pt-2">
                 <button
                   onClick={handleInitiateOnChainSelection}
-                  disabled={isWritePending}
-                  className="w-full py-4 sm:py-5 px-6 bg-[#0052FF] hover:bg-blue-600 text-white font-display text-sm sm:text-base font-black uppercase tracking-wider rounded-2xl shadow-xl shadow-[#0052FF]/30 flex items-center justify-center gap-3 cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99]"
+                  disabled={isPendingTx}
+                  className="w-full py-4 sm:py-5 px-6 bg-[#0052FF] hover:bg-blue-600 disabled:opacity-50 text-white font-display text-sm sm:text-base font-black uppercase tracking-wider rounded-2xl shadow-xl shadow-[#0052FF]/30 flex items-center justify-center gap-3 cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99]"
                 >
                   <Sparkles className="w-5 h-5 text-cyan-200" />
-                  <span>Execute On-Chain Selection</span>
+                  <span>Execute On-Chain Selection (gm)</span>
                   <ArrowRight className="w-5 h-5 ml-1" />
                 </button>
               </div>
+
+              <p className="text-[11px] text-slate-500 font-mono">
+                Compatible with Rabby Wallet, MetaMask & all EIP-1193 wallets on Base Mainnet.
+              </p>
             </div>
           )}
 
@@ -481,7 +554,7 @@ export const RevealModal: React.FC<RevealModalProps> = ({
                   Approve in Your Wallet
                 </h3>
                 <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
-                  Please confirm the transaction in your EVM wallet. You pay <strong>0 ETH platform fee</strong> and only normal Base network gas.
+                  Please confirm the transaction calling <code className="text-blue-300 font-mono">gm()</code> in your Rabby or EVM wallet. You pay <strong>0 ETH platform fee</strong> and only normal Base network gas.
                 </p>
               </div>
 
@@ -508,7 +581,7 @@ export const RevealModal: React.FC<RevealModalProps> = ({
                   Confirming on Base Mainnet
                 </h3>
                 <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
-                  Transaction submitted to the Base blockchain. Waiting for block inclusion...
+                  Transaction submitted to Base blockchain. Waiting for confirmed block inclusion...
                 </p>
               </div>
 
@@ -530,12 +603,12 @@ export const RevealModal: React.FC<RevealModalProps> = ({
               {/* Kinetic preview slot */}
               <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/5 font-mono text-xs text-blue-300 flex items-center justify-center gap-2">
                 <Sparkles className="w-4 h-4 text-[#0052FF] animate-spin-slow" />
-                <span>Synthesizing encounter for: {shufflingName}</span>
+                <span>Verifying on-chain transaction...</span>
               </div>
             </div>
           )}
 
-          {/* STEP 7: REVEALED SUCCESSFULLY */}
+          {/* STEP 7: REVEALED SUCCESSFULLY ONLY AFTER CONFIRMED RECEIPT */}
           {status === 'revealed' && revealedPersonality && (
             <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
               {/* On-Chain Verified Header Banner */}
@@ -565,7 +638,7 @@ export const RevealModal: React.FC<RevealModalProps> = ({
               <div className="px-3.5 py-2 rounded-xl bg-white/[0.02] border border-white/5 text-[11px] text-slate-400 flex items-center gap-2 font-mono">
                 <Lock className="w-3.5 h-3.5 text-blue-400 shrink-0" />
                 <span>
-                  Privacy Protected: Personality #{revealedPersonality.id} derived off-chain using transaction entropy. Never leaked to public ledger.
+                  Privacy Protected: Personality #{revealedPersonality.id} derived off-chain with transaction entropy. Zero data stored on-chain.
                 </span>
               </div>
 
@@ -672,7 +745,7 @@ export const RevealModal: React.FC<RevealModalProps> = ({
             </div>
           )}
 
-          {/* STEP 8: TRANSACTION FAILED OR REJECTED */}
+          {/* STEP 8: TRANSACTION FAILED OR REVERTED */}
           {status === 'failed' && (
             <div className="text-center py-8 space-y-6 max-w-md mx-auto">
               <div className="w-16 h-16 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center mx-auto">
@@ -687,7 +760,7 @@ export const RevealModal: React.FC<RevealModalProps> = ({
                   {errorMessage || 'Transaction could not be confirmed on Base Mainnet.'}
                 </p>
                 <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 text-[11px] text-slate-400 mt-2">
-                  <strong>Protocol Rule:</strong> No successful transaction = No personality selection. No personality was revealed.
+                  <strong>Protocol Rule:</strong> No confirmed transaction = No personality selection. No image was displayed.
                 </div>
               </div>
 
@@ -712,10 +785,10 @@ export const RevealModal: React.FC<RevealModalProps> = ({
                 </button>
 
                 <button
-                  onClick={onClose}
+                  onClick={handleResetForNewSelection}
                   className="w-full py-2.5 px-4 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white text-xs font-medium rounded-xl border border-white/10 cursor-pointer transition-colors"
                 >
-                  Cancel
+                  Reset Interface
                 </button>
               </div>
             </div>

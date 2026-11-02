@@ -118,27 +118,44 @@ export const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose }) => 
               </p>
 
               <div className="space-y-2">
-                {connectors.map((connector) => (
-                  <button
-                    key={connector.id}
-                    onClick={() => {
-                      connect({ connector });
-                      onClose();
-                    }}
-                    disabled={isConnectPending}
-                    className="w-full p-3.5 bg-white/[0.02] hover:bg-[#0052FF]/10 border border-white/10 hover:border-[#0052FF]/50 rounded-2xl text-left flex items-center justify-between text-sm text-slate-100 transition-all cursor-pointer group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:border-[#0052FF]/50 group-hover:bg-[#0052FF]/15 transition-colors">
-                        <Wallet className="w-4 h-4 text-blue-300 group-hover:text-white transition-colors" />
+                {connectors.map((connector) => {
+                  const isRabbyDetected =
+                    typeof window !== 'undefined' &&
+                    Boolean((window as any)?.ethereum?.isRabby || (window as any)?.rabby);
+                  const displayName =
+                    connector.id === 'injected' && isRabbyDetected
+                      ? 'Rabby Wallet (EIP-1193)'
+                      : connector.name;
+
+                  return (
+                    <button
+                      key={connector.id}
+                      onClick={() => {
+                        connect({ connector });
+                        onClose();
+                      }}
+                      disabled={isConnectPending}
+                      className="w-full p-3.5 bg-white/[0.02] hover:bg-[#0052FF]/10 border border-white/10 hover:border-[#0052FF]/50 rounded-2xl text-left flex items-center justify-between text-sm text-slate-100 transition-all cursor-pointer group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:border-[#0052FF]/50 group-hover:bg-[#0052FF]/15 transition-colors">
+                          <Wallet className="w-4 h-4 text-blue-300 group-hover:text-white transition-colors" />
+                        </div>
+                        <div>
+                          <span className="font-medium group-hover:text-white block">
+                            {displayName}
+                          </span>
+                          {connector.id === 'injected' && (
+                            <span className="text-[10px] text-blue-300/80 font-mono block">
+                              EIP-1193 / Rabby / Browser Extension
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <span className="font-medium group-hover:text-white">
-                        {connector.name}
-                      </span>
-                    </div>
-                    <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all" />
-                  </button>
-                ))}
+                      <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all" />
+                    </button>
+                  );
+                })}
               </div>
 
               {connectError && (

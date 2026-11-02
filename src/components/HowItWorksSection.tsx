@@ -59,14 +59,14 @@ export const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({
               Step 02
             </span>
             <h3 className="font-display text-xl font-bold text-white mb-2">
-              On-Chain Transaction
+              On-Chain Transaction (gm)
             </h3>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Pressing "REVEAL MY DESTINY" requests your wallet transaction approval on Base Mainnet. Users pay ONLY standard Base network gas (approx. &lt; $0.001). 0 ETH application fees.
+              Pressing "REVEAL MY DESTINY" requests your wallet transaction approval on Base Mainnet calling <code className="text-blue-300 font-mono">gm()</code> on the LuckyFace contract. Users pay ONLY standard Base network gas (approx. &lt; $0.001). 0 ETH application fees.
             </p>
           </div>
           <div className="pt-4 mt-6 border-t border-white/5 text-[11px] text-slate-400 font-mono">
-            <span>0 ETH platform fee · No tokens required</span>
+            <span>0 ETH platform fee · gm() contract call</span>
           </div>
         </div>
 

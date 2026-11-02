@@ -9,7 +9,7 @@ export interface DecodedSelectionEvent {
 }
 
 /**
- * Parses the confirmed transaction receipt to extract SelectionConfirmed or EncounterRevealed event.
+ * Parses the confirmed transaction receipt to extract the GM event on Base Mainnet.
  */
 export function parseSelectionReceipt(
   receipt: TransactionReceipt
@@ -24,30 +24,14 @@ export function parseSelectionReceipt(
         topics: log.topics,
       });
 
-      if (decoded.eventName === 'SelectionConfirmed') {
+      if (decoded.eventName === 'GM') {
         const args = decoded.args as {
-          user: string;
-          selectionNumber: bigint;
+          sender: string;
           timestamp: bigint;
         };
 
         return {
-          user: args.user,
-          selectionNumber: Number(args.selectionNumber),
-          timestamp: Number(args.timestamp) * 1000,
-        };
-      }
-
-      if (decoded.eventName === 'EncounterRevealed') {
-        const args = decoded.args as {
-          user: string;
-          personalityId: bigint;
-          timestamp: bigint;
-        };
-
-        return {
-          user: args.user,
-          personalityId: Number(args.personalityId),
+          user: args.sender,
           timestamp: Number(args.timestamp) * 1000,
         };
       }

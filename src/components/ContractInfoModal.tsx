@@ -343,26 +343,28 @@ export const ContractInfoModal: React.FC<ContractInfoModalProps> = ({
               <div className="p-4 rounded-2xl bg-[#030612] border border-white/10 space-y-2">
                 <h4 className="font-display text-white font-bold text-sm">Target Function & Gas:</h4>
                 <div className="p-2.5 bg-white/[0.02] rounded-xl font-mono text-xs text-blue-300">
-                  <code>function recordSelection() external returns (uint256 selectionNumber);</code>
+                  <code>function gm() external;</code>
                 </div>
-                <p className="text-xs text-slate-400 pt-1 leading-relaxed">
-                  Consumes under 28,000 gas units per selection. Operates with <strong>0 ETH application fees</strong>.
-                </p>
+                <div className="space-y-1 text-xs text-slate-400 pt-1 leading-relaxed">
+                  <p>• <strong>Function Name:</strong> <code className="text-white font-mono">gm()</code></p>
+                  <p>• <strong>Parameters:</strong> None</p>
+                  <p>• <strong>Payable:</strong> No (0 ETH application fee)</p>
+                  <p>• <strong>Gas Consumption:</strong> Minimal (&lt; 25,000 gas units on Base Mainnet, costing less than $0.0005)</p>
+                </div>
               </div>
 
               <div className="p-4 rounded-2xl bg-[#030612] border border-white/10 space-y-2">
                 <h4 className="font-display text-white font-bold text-sm">Lightweight Verification Event:</h4>
                 <pre className="font-mono text-xs text-[#0052FF] p-3 rounded-xl bg-white/[0.02] border border-white/5">
-{`event SelectionConfirmed(
-    address indexed user,
-    uint256 indexed selectionNumber,
+{`event GM(
+    address indexed sender,
     uint256 timestamp
 );`}
                 </pre>
                 <div className="text-xs text-emerald-300 bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20 space-y-1">
                   <p className="font-semibold">Privacy-Preserving Architecture:</p>
                   <p className="text-slate-300">
-                    The chosen personality ID and personal selection history are stored strictly <strong>OFF-CHAIN</strong> in the user's browser, seeded deterministically by the confirmed transaction hash. No individual personality choices are ever published to the public blockchain.
+                    No character IDs, selection history, or personal data are stored or emitted on-chain. The transaction confirms authentic interaction, and character discovery occurs with zero public footprint.
                   </p>
                 </div>
               </div>
