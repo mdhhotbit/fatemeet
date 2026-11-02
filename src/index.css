@@ -1,0 +1,41 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer utilities {
+  .font-cinzel {
+    font-family: 'Cinzel', serif;
+  }
+  .font-editorial {
+    font-family: 'Playfair Display', serif;
+  }
+  .font-sans-clean {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  .gold-gradient-text {
+    background: linear-gradient(135deg, #FFF6D5 0%, #E6C275 35%, #D4AF37 70%, #997424 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .gold-border-glow {
+    box-shadow: 0 0 25px -5px rgba(212, 175, 55, 0.25);
+  }
+  .base-blue-glow {
+    box-shadow: 0 0 25px -5px rgba(0, 82, 255, 0.35);
+  }
+}
+
+/* Custom scrollbar for gallery and lists */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #060913;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #d4af37;
+}
