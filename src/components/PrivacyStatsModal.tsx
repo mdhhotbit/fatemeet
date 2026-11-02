@@ -90,7 +90,7 @@ export const PrivacyStatsModal: React.FC<PrivacyStatsModalProps> = ({
               <span>Core Privacy Guarantee</span>
             </div>
             <p className="text-xs text-slate-300 leading-relaxed">
-              Fatemeet is built on total user sovereignty. We never ask for names, phone numbers, email addresses, or contacts. We do not use Google Analytics, advertising pixels, or third-party behavioral trackers. Your IP address is never permanently stored or used for identification.
+              LuckyFace is built on total user sovereignty. We never ask for names, phone numbers, email addresses, or contacts. We do not use Google Analytics, advertising pixels, or third-party behavioral trackers. Your IP address is never permanently stored or used for identification.
             </p>
           </div>
 

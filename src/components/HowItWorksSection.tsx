@@ -1,5 +1,5 @@
 import React from 'react';
-import { Compass, ShieldCheck, Zap, Code, Lock } from 'lucide-react';
+import { Compass, ShieldCheck, Zap, Code, Lock, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
 
 interface HowItWorksSectionProps {
   onOpenContractModal: () => void;
@@ -16,120 +16,118 @@ export const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto mb-16">
-        <p className="font-editorial text-amber-300 text-sm tracking-widest uppercase mb-2">
-          Architecture & Philosophy
+        <p className="font-editorial text-blue-300 text-sm tracking-widest uppercase mb-2">
+          Protocol & Architecture
         </p>
-        <h2 className="font-cinzel text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight mb-4">
-          HOW FATE MEET WORKS
+        <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mb-4">
+          HOW LUCKYFACE WORKS
         </h2>
         <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-          An intersection of timeless human history, private discovery, and the modern Base blockchain ecosystem.
+          An intersection of human history, complete privacy, and authentic Base Mainnet transactions.
         </p>
       </div>
 
       {/* 3 Step Flow */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-        <div className="p-6 rounded-2xl bg-[#090e1c] border border-white/10 relative overflow-hidden flex flex-col justify-between">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-amber-400/5 rounded-bl-full pointer-events-none" />
+        <div className="p-7 rounded-3xl bg-[#060C1E] border border-white/10 hover:border-[#0052FF]/40 transition-all flex flex-col justify-between shadow-xl">
           <div>
-            <div className="w-12 h-12 rounded-xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-300 mb-5">
+            <div className="w-12 h-12 rounded-2xl bg-[#0052FF]/15 border border-[#0052FF]/30 flex items-center justify-center text-[#0052FF] mb-5">
               <Compass className="w-6 h-6" />
             </div>
-            <span className="text-xs font-mono text-amber-400/80 uppercase tracking-widest block mb-1">
+            <span className="text-xs font-mono text-blue-400 uppercase tracking-widest block mb-1">
               Step 01
             </span>
-            <h3 className="font-cinzel text-xl font-bold text-white mb-2">
-              Instant or On-Chain
+            <h3 className="font-display text-xl font-bold text-white mb-2">
+              Connect EVM Wallet
             </h3>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Experience the 50 lives freely with instant anonymous discovery, or connect an EVM wallet (MetaMask, Rabby, Coinbase Wallet) on Base Mainnet.
+              Connect your EVM browser wallet (MetaMask, Rabby, Coinbase Wallet) to Base Mainnet (Chain ID 8453). Zero personal registration, no email, no name required.
             </p>
           </div>
-          <div className="pt-4 mt-6 border-t border-white/5 text-[11px] text-slate-400 flex items-center gap-1.5">
+          <div className="pt-4 mt-6 border-t border-white/5 text-[11px] text-slate-400 flex items-center gap-1.5 font-mono">
             <Lock className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Zero personal information required</span>
+            <span>Zero personal data collected</span>
           </div>
         </div>
 
-        <div className="p-6 rounded-2xl bg-[#090e1c] border border-white/10 relative overflow-hidden flex flex-col justify-between">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-bl-full pointer-events-none" />
+        <div className="p-7 rounded-3xl bg-[#060C1E] border border-white/10 hover:border-[#0052FF]/40 transition-all flex flex-col justify-between shadow-xl">
           <div>
-            <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 mb-5">
+            <div className="w-12 h-12 rounded-2xl bg-[#0052FF]/15 border border-[#0052FF]/30 flex items-center justify-center text-[#0052FF] mb-5">
               <Zap className="w-6 h-6" />
             </div>
-            <span className="text-xs font-mono text-blue-400/80 uppercase tracking-widest block mb-1">
+            <span className="text-xs font-mono text-blue-400 uppercase tracking-widest block mb-1">
               Step 02
             </span>
-            <h3 className="font-cinzel text-xl font-bold text-white mb-2">
-              The Reveal Call
+            <h3 className="font-display text-xl font-bold text-white mb-2">
+              On-Chain Transaction
             </h3>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Pressing "REVEAL MY DESTINY" triggers an unbiased selection. When using Base, it invokes the <code className="text-amber-300">reveal()</code> contract function using standard network gas only.
+              Pressing "REVEAL MY DESTINY" requests your wallet transaction approval on Base Mainnet. Users pay ONLY standard Base network gas (approx. &lt; $0.001). 0 ETH application fees.
             </p>
           </div>
-          <div className="pt-4 mt-6 border-t border-white/5 text-[11px] text-slate-400">
-            No subscriptions · Zero platform markups
+          <div className="pt-4 mt-6 border-t border-white/5 text-[11px] text-slate-400 font-mono">
+            <span>0 ETH platform fee · No tokens required</span>
           </div>
         </div>
 
-        <div className="p-6 rounded-2xl bg-[#090e1c] border border-white/10 relative overflow-hidden flex flex-col justify-between">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-amber-400/5 rounded-bl-full pointer-events-none" />
+        <div className="p-7 rounded-3xl bg-[#060C1E] border border-white/10 hover:border-[#0052FF]/40 transition-all flex flex-col justify-between shadow-xl">
           <div>
-            <div className="w-12 h-12 rounded-xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-300 mb-5">
+            <div className="w-12 h-12 rounded-2xl bg-[#0052FF]/15 border border-[#0052FF]/30 flex items-center justify-center text-[#0052FF] mb-5">
               <ShieldCheck className="w-6 h-6" />
             </div>
-            <span className="text-xs font-mono text-amber-400/80 uppercase tracking-widest block mb-1">
+            <span className="text-xs font-mono text-blue-400 uppercase tracking-widest block mb-1">
               Step 03
             </span>
-            <h3 className="font-cinzel text-xl font-bold text-white mb-2">
-              Destiny Encounter
+            <h3 className="font-display text-xl font-bold text-white mb-2">
+              Privacy-First Reveal
             </h3>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              An extraordinary historical portrait, lifetime achievements, and biography are revealed. On-chain encounters generate a verifiable public BaseScan transaction proof.
+              Upon confirmed transaction receipt, your encounter is derived off-chain using transaction entropy. A verified BaseScan link is provided with full private local storage.
             </p>
           </div>
-          <div className="pt-4 mt-6 border-t border-white/5 text-[11px] text-slate-400">
-            Cryptographic verification · Public archival proof
+          <div className="pt-4 mt-6 border-t border-white/5 text-[11px] text-slate-400 font-mono">
+            <span>Personality ID kept off-chain</span>
           </div>
         </div>
       </div>
 
-      {/* Dual Discovery Architecture Card */}
-      <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-slate-900/90 to-[#0c1222] border border-amber-500/20 mb-12">
+      {/* Smart Contract Architecture Card */}
+      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#060C1E] to-[#040816] border border-[#0052FF]/30 mb-12 shadow-2xl">
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
           <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-amber-400/10 border border-amber-400/20 text-xs font-mono text-amber-300">
-              <span>SYSTEM ARCHITECTURE</span>
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#0052FF]/15 border border-[#0052FF]/30 text-xs font-mono text-blue-300">
+              <Sparkles className="w-3.5 h-3.5 text-[#0052FF]" />
+              <span>BASE MAINNET PROTOCOL</span>
             </div>
-            <h3 className="font-cinzel text-2xl font-bold text-white">
-              Sovereign Discovery & Base Smart Contract
+            <h3 className="font-display text-2xl font-bold text-white">
+              Lightweight Smart Contract & Privacy Architecture
             </h3>
             <p className="text-sm text-slate-300 leading-relaxed">
-              FATE MEET offers dual discovery modes: instant sovereign private encounters right in your browser with zero registration required, or verified on-chain encounters on Base Mainnet where each destiny match is permanently recorded.
+              LuckyFace is built strictly on <strong>Base Mainnet (Chain ID 8453)</strong>. By executing transactions consuming &lt; 28,000 gas units, it offers an economical, authentic Web3 discovery journey without leaking user selections to the public ledger.
             </p>
           </div>
 
           <button
             onClick={onOpenContractModal}
-            className="px-6 py-3.5 bg-slate-900 border border-amber-400/40 hover:border-amber-400 text-amber-200 hover:text-white rounded-xl text-xs font-semibold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shrink-0 shadow-lg"
+            className="px-6 py-3.5 bg-[#0052FF] hover:bg-blue-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shrink-0 shadow-lg shadow-[#0052FF]/20"
           >
-            <Code className="w-4 h-4 text-amber-400" />
-            <span>View Smart Contract Spec</span>
+            <Code className="w-4 h-4" />
+            <span>Deploy / Configure Contract</span>
           </button>
         </div>
       </div>
 
-      {/* Honest Randomness Disclosure */}
-      <div className="p-6 rounded-2xl bg-slate-950 border border-white/10 text-xs sm:text-sm text-slate-300 leading-relaxed space-y-3">
-        <div className="flex items-center gap-2 text-amber-300 font-semibold uppercase tracking-wider text-xs">
-          <ShieldCheck className="w-4 h-4" />
-          <span>Honest Pseudorandomness Disclosure</span>
+      {/* Protocol Rule & Privacy Guarantee */}
+      <div className="p-6 rounded-3xl bg-[#040816] border border-white/10 text-xs sm:text-sm text-slate-300 leading-relaxed space-y-3">
+        <div className="flex items-center gap-2 text-blue-300 font-semibold uppercase tracking-wider text-xs font-display">
+          <ShieldCheck className="w-4 h-4 text-[#0052FF]" />
+          <span>Strict Protocol Rule & Privacy Guarantee</span>
         </div>
         <p>
-          The Solidity smart contract uses inexpensive on-chain pseudorandom inputs (including <code className="text-amber-200">prevrandao</code>, <code className="text-amber-200">block.timestamp</code>, and sender nonce). This design keeps gas costs minimal for all users.
+          <strong>No successful transaction = No personality selection.</strong> If a transaction is rejected by the user or fails on-chain, no personality is ever revealed.
         </p>
         <p className="text-slate-400">
-          <strong>Important:</strong> We do not claim that this method provides cryptographically secure, manipulation-proof, or provably fair randomness. It is designed specifically for engaging, lightweight historical entertainment and social discovery on Base.
+          <strong>Privacy By Design:</strong> While the transaction event verifies that a selection occurred, individual personality choices and encounter chronicles remain strictly <strong>OFF-CHAIN</strong> on your device, ensuring maximum privacy for every explorer.
         </p>
       </div>
 
@@ -137,9 +135,9 @@ export const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({
       <div className="text-center mt-12">
         <button
           onClick={onTriggerReveal}
-          className="px-8 py-4 bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 text-slate-950 font-cinzel text-xs sm:text-sm font-bold uppercase tracking-widest rounded-lg hover:from-amber-200 hover:to-amber-400 shadow-xl cursor-pointer"
+          className="px-10 py-4 bg-[#0052FF] hover:bg-blue-600 text-white font-display text-sm font-bold uppercase tracking-widest rounded-xl shadow-xl shadow-[#0052FF]/30 cursor-pointer transition-all hover:scale-[1.02]"
         >
-          Begin An Encounter Now
+          START ON-CHAIN DISCOVERY
         </button>
       </div>
     </section>

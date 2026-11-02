@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAccount, useDisconnect } from 'wagmi';
 import { shortenAddress } from '../lib/blockchain';
 import { Wallet, LogOut, Menu, X, Shield, Lock, Compass } from 'lucide-react';
-import { FateMeetLogo } from './FateMeetLogo';
+import { LuckyFaceLogo } from './LuckyFaceLogo';
 
 interface NavbarProps {
   activeTab: 'home' | 'gallery' | 'history' | 'how-it-works';
@@ -30,16 +30,16 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-[#030712]/85 border-b border-white/[0.08] transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-8">
-        {/* Zone 1: Compact Base-native Fatemeet brand */}
+        {/* Zone 1: Compact Base-native LuckyFace brand */}
         <button
           onClick={() => {
             onSelectTab('home');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
           className="group flex items-center text-left whitespace-nowrap shrink-0 focus:outline-none cursor-pointer"
-          aria-label="Fatemeet home"
+          aria-label="LuckyFace home"
         >
-          <FateMeetLogo size="md" variant="full" />
+          <LuckyFaceLogo size="md" variant="full" />
         </button>
 
         {/* Zone 2: 4–5 clean single-line text navigation links */}

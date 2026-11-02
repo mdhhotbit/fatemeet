@@ -1,13 +1,13 @@
 import React from 'react';
 
-interface FateMeetLogoProps {
+interface LuckyFaceLogoProps {
   className?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   variant?: 'full' | 'compact' | 'icon';
   showTagline?: boolean;
 }
 
-export const FateMeetLogo: React.FC<FateMeetLogoProps> = ({
+export const LuckyFaceLogo: React.FC<LuckyFaceLogoProps> = ({
   className = '',
   size = 'md',
   variant = 'full',
@@ -24,7 +24,7 @@ export const FateMeetLogo: React.FC<FateMeetLogoProps> = ({
 
   return (
     <div className={`flex items-center gap-3 select-none ${className}`}>
-      {/* Base-Native Fatemeet Symbol: Iconic Electric Blue Portal with Intertwined Destiny Glyph */}
+      {/* Base-Native LuckyFace Symbol: Iconic Electric Blue Portal with Intertwined Destiny Glyph */}
       <div
         className="relative shrink-0 flex items-center justify-center transition-transform duration-300 group-hover:scale-105"
         style={{ width: currentSize.box, height: currentSize.box }}
@@ -80,21 +80,19 @@ export const FateMeetLogo: React.FC<FateMeetLogoProps> = ({
           {/* Inner Light Core */}
           <circle cx="50" cy="50" r="28" fill="url(#portalCore)" />
 
-          {/* Stylized Modern "FM" Infinity Portal Glyph */}
-          {/* Top 'F' Wing */}
+          {/* Stylized Modern Portal Glyph */}
           <path
             d="M 32 30 H 68 C 73 30, 76 34, 73 38 L 48 62 H 32 Z"
             fill="url(#fateGlyph)"
             opacity="0.95"
           />
-          {/* Intersecting 'M' Wings forming the Destiny Knot */}
           <path
             d="M 68 70 H 32 C 27 70, 24 66, 27 62 L 52 38 H 68 Z"
             fill="url(#fateGlyph)"
             opacity="0.85"
           />
 
-          {/* Center Luminous Spark of Fate */}
+          {/* Center Luminous Spark */}
           <circle cx="50" cy="50" r="5" fill="#FFFFFF" className="animate-pulse" />
           <circle cx="50" cy="50" r="8" stroke="#38BDF8" strokeWidth="1.5" strokeOpacity="0.8" />
         </svg>
@@ -106,7 +104,7 @@ export const FateMeetLogo: React.FC<FateMeetLogoProps> = ({
             <span
               className={`font-display text-white group-hover:text-blue-200 transition-colors ${currentSize.text}`}
             >
-              FATEMEET
+              LUCKYFACE
             </span>
             <span className="w-1.5 h-1.5 rounded-full bg-[#0052FF] shadow-[0_0_8px_#0052FF] inline-block mb-1" />
           </div>
@@ -123,3 +121,4 @@ export const FateMeetLogo: React.FC<FateMeetLogoProps> = ({
     </div>
   );
 };
+

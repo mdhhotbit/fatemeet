@@ -18,13 +18,13 @@ export const PersonalityDetailModal: React.FC<PersonalityDetailModalProps> = ({
   if (!personality) return null;
 
   const handleShare = () => {
-    const text = `I just discovered ${personality.name} on Fatemeet — the interactive historical discovery experience on Base. Discover 50 extraordinary lives:\n${window.location.origin}`;
+    const text = `I just discovered ${personality.name} on LuckyFace — the interactive historical discovery experience on Base. Discover 50 extraordinary lives:\n${window.location.origin}`;
     const xUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
     window.open(xUrl, '_blank', 'noopener,noreferrer');
   };
 
   const handleCopy = () => {
-    const text = `${personality.name} — ${personality.profession} (${personality.nationality}). Discover extraordinary historical lives on Fatemeet: ${window.location.origin}`;
+    const text = `${personality.name} — ${personality.profession} (${personality.nationality}). Discover extraordinary historical lives on LuckyFace: ${window.location.origin}`;
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);

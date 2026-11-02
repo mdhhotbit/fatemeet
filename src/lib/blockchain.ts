@@ -1,19 +1,19 @@
 import { decodeEventLog, TransactionReceipt } from 'viem';
 import { CONTRACT_ABI, BASESCAN_URL } from '../config/contract';
 
-export interface DecodedEncounterEvent {
+export interface DecodedSelectionEvent {
   user: string;
-  personalityId: number;
+  selectionNumber?: number;
+  personalityId?: number;
   timestamp: number;
 }
 
 /**
- * Parses the confirmed transaction receipt to extract the EncounterRevealed event.
- * Never guesses or generates random IDs after a blockchain transaction.
+ * Parses the confirmed transaction receipt to extract SelectionConfirmed or EncounterRevealed event.
  */
-export function parseEncounterRevealedEvent(
+export function parseSelectionReceipt(
   receipt: TransactionReceipt
-): DecodedEncounterEvent | null {
+): DecodedSelectionEvent | null {
   if (!receipt || !receipt.logs) return null;
 
   for (const log of receipt.logs) {
@@ -23,6 +23,20 @@ export function parseEncounterRevealedEvent(
         data: log.data,
         topics: log.topics,
       });
+
+      if (decoded.eventName === 'SelectionConfirmed') {
+        const args = decoded.args as {
+          user: string;
+          selectionNumber: bigint;
+          timestamp: bigint;
+        };
+
+        return {
+          user: args.user,
+          selectionNumber: Number(args.selectionNumber),
+          timestamp: Number(args.timestamp) * 1000,
+        };
+      }
 
       if (decoded.eventName === 'EncounterRevealed') {
         const args = decoded.args as {
@@ -38,11 +52,26 @@ export function parseEncounterRevealedEvent(
         };
       }
     } catch {
-      // Not our event in this log; continue searching
+      // Continue to next log
     }
   }
 
   return null;
+}
+
+/**
+ * Generates personality ID (1-50) using the confirmed Base transaction hash as entropy.
+ * CRITICAL PRIVACY FEATURE: Keeps the chosen personality strictly OFF-CHAIN so the public
+ * blockchain ledger never records or exposes individual selections.
+ */
+export function derivePersonalityIdFromTxHash(txHash: string): number {
+  if (!txHash) return Math.floor(Math.random() * 50) + 1;
+  const clean = txHash.toLowerCase().replace(/^0x/, '');
+  // Take last 8 hex digits
+  const seedSlice = clean.slice(-8);
+  const intVal = parseInt(seedSlice, 16);
+  if (isNaN(intVal)) return Math.floor(Math.random() * 50) + 1;
+  return (intVal % 50) + 1;
 }
 
 /**
@@ -67,3 +96,6 @@ export function getBaseScanTxUrl(txHash: string): string {
 export function getBaseScanAddressUrl(address: string): string {
   return `${BASESCAN_URL}/address/${address}`;
 }
+
+// Backward compatibility alias
+export const parseEncounterRevealedEvent = parseSelectionReceipt;

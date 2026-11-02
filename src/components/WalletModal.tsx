@@ -86,7 +86,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose }) => 
                     <span>Switch to Base Mainnet</span>
                   </div>
                   <p className="text-slate-300 leading-relaxed text-[11px]">
-                    Fatemeet operates on <strong>Base Mainnet</strong> (Chain ID 8453). Switch your wallet network to proceed.
+                    LuckyFace operates on <strong>Base Mainnet</strong> (Chain ID 8453). Switch your wallet network to proceed.
                   </p>
                   <button
                     onClick={() => switchChain({ chainId: BASE_CHAIN_ID })}
@@ -114,7 +114,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose }) => 
             /* Connect Wallet Options */
             <div className="space-y-4">
               <p className="text-xs text-slate-300 leading-relaxed">
-                Connect your EVM browser wallet to interact with Fatemeet on Base. No registration or personal data required.
+                Connect your EVM browser wallet to interact with LuckyFace on Base. No registration or personal data required.
               </p>
 
               <div className="space-y-2">

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { wagmiConfig } from './lib/wagmi';
-import { IS_CONTRACT_CONFIGURED } from './config/contract';
+import { isContractConfigured } from './config/contract';
 import { recordVisitSession } from './lib/anonymousAnalytics';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
@@ -34,6 +34,8 @@ export function MainApp() {
     recordVisitSession();
   }, []);
 
+  const contractActive = isContractConfigured();
+
   // Spotlight personalities: 4 iconic figures from diverse categories
   const spotlightPersonalities = [
     PERSONALITIES[0], // Albert Einstein
@@ -50,6 +52,10 @@ export function MainApp() {
     setRefreshTrigger((prev) => prev + 1);
   };
 
+  const handleContractAddressUpdated = () => {
+    setRefreshTrigger((prev) => prev + 1);
+  };
+
   return (
     <div className="min-h-screen bg-[#05070f] text-slate-100 flex flex-col font-sans-clean">
       {/* Top Navigation */}
@@ -59,7 +65,7 @@ export function MainApp() {
         onOpenWalletModal={() => setIsWalletOpen(true)}
         onOpenContractModal={() => setIsContractOpen(true)}
         onOpenPrivacyModal={() => setIsPrivacyOpen(true)}
-        isContractConfigured={IS_CONTRACT_CONFIGURED}
+        isContractConfigured={contractActive}
       />
 
       {/* Main View Area */}
@@ -70,7 +76,7 @@ export function MainApp() {
               onTriggerReveal={() => setIsRevealOpen(true)}
               onOpenContractModal={() => setIsContractOpen(true)}
               onOpenPrivacyModal={() => setIsPrivacyOpen(true)}
-              isContractConfigured={IS_CONTRACT_CONFIGURED}
+              isContractConfigured={contractActive}
               totalEncountersCount={50}
             />
 
@@ -78,10 +84,10 @@ export function MainApp() {
             <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-white/5">
               <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
                 <div>
-                  <p className="font-editorial text-amber-300 text-xs tracking-widest uppercase mb-1">
+                  <p className="font-editorial text-blue-300 text-xs tracking-widest uppercase mb-1">
                     Echoes of Greatness
                   </p>
-                  <h2 className="font-cinzel text-2xl sm:text-3xl font-bold text-white">
+                  <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-white">
                     WHO WILL DESTINY CHOOSE?
                   </h2>
                 </div>
@@ -91,7 +97,7 @@ export function MainApp() {
                     setActiveTab('gallery');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className="inline-flex items-center gap-2 text-xs font-semibold text-amber-300 hover:text-amber-200 transition-colors group cursor-pointer"
+                  className="inline-flex items-center gap-2 text-xs font-semibold text-blue-300 hover:text-white transition-colors group cursor-pointer"
                 >
                   <span>Explore all 50 lives in the Gallery</span>
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
@@ -107,7 +113,7 @@ export function MainApp() {
                       setActiveTab('gallery');
                       window.scrollTo({ top: 0, behavior: 'smooth' });
                     }}
-                    className="group relative bg-[#090e1c] border border-white/10 hover:border-amber-400/40 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1"
+                    className="group relative bg-[#060C1E] border border-white/10 hover:border-[#0052FF]/50 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 shadow-lg shadow-black/40"
                   >
                     <div className="relative overflow-hidden aspect-[3/4]">
                       <PortraitImage
@@ -116,17 +122,17 @@ export function MainApp() {
                         initials={getInitials(item.name)}
                         aspectRatio="portrait"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#090e1c] via-transparent to-transparent opacity-90" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#060C1E] via-transparent to-transparent opacity-90" />
                     </div>
 
                     <div className="p-3.5 space-y-1">
-                      <span className="text-[10px] text-amber-400 font-medium block">
+                      <span className="text-[10px] text-blue-400 font-medium block">
                         {item.category}
                       </span>
-                      <h3 className="font-cinzel text-sm sm:text-base font-bold text-white group-hover:text-amber-200 line-clamp-1">
+                      <h3 className="font-display text-sm sm:text-base font-bold text-white group-hover:text-blue-200 line-clamp-1">
                         {item.name}
                       </h3>
-                      <p className="text-[11px] text-slate-400 font-editorial italic line-clamp-1">
+                      <p className="text-[11px] text-slate-400 italic line-clamp-1">
                         {item.profession}
                       </p>
                     </div>
@@ -135,21 +141,21 @@ export function MainApp() {
               </div>
 
               {/* Central Reveal Callout */}
-              <div className="mt-14 p-6 sm:p-10 rounded-2xl bg-gradient-to-r from-amber-500/10 via-slate-900 to-blue-900/10 border border-amber-500/20 text-center relative overflow-hidden">
+              <div className="mt-14 p-6 sm:p-10 rounded-3xl bg-gradient-to-r from-[#0052FF]/15 via-[#060C1E] to-[#0052FF]/10 border border-[#0052FF]/30 text-center relative overflow-hidden shadow-2xl">
                 <div className="max-w-xl mx-auto space-y-4">
-                  <span className="font-editorial italic text-amber-200 text-base sm:text-lg">
+                  <span className="text-blue-200 text-sm sm:text-base font-medium">
                     "Every click reveals a life."
                   </span>
-                  <h3 className="font-cinzel text-2xl sm:text-3xl font-extrabold text-white">
-                    READY FOR YOUR ENCOUNTER?
+                  <h3 className="font-display text-2xl sm:text-3xl font-black text-white">
+                    READY FOR YOUR ON-CHAIN ENCOUNTER?
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                    Will you meet an ancient conqueror, a renaissance genius, a champion athlete, or a technological pioneer?
+                    Execute a verified transaction on Base Mainnet. 0 ETH fee · Normal gas only · Privacy-protected off-chain reveal.
                   </p>
                   <div className="pt-2">
                     <button
                       onClick={() => setIsRevealOpen(true)}
-                      className="px-8 py-3.5 bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 text-slate-950 font-cinzel text-xs font-bold uppercase tracking-widest rounded-lg hover:from-amber-200 hover:to-amber-400 shadow-xl cursor-pointer"
+                      className="px-8 py-4 bg-[#0052FF] hover:bg-blue-600 text-white font-display text-xs font-bold uppercase tracking-widest rounded-xl shadow-xl shadow-[#0052FF]/30 cursor-pointer transition-all hover:scale-[1.02]"
                     >
                       REVEAL MY DESTINY
                     </button>
@@ -205,6 +211,7 @@ export function MainApp() {
       <ContractInfoModal
         isOpen={isContractOpen}
         onClose={() => setIsContractOpen(false)}
+        onContractAddressUpdated={handleContractAddressUpdated}
       />
 
       {/* Privacy Charter & Anonymous Metrics Modal */}

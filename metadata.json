@@ -1,6 +1,6 @@
 {
   "name": "FATE MEET",
-  "description": "FATE MEET - Every click reveals a life. Discover 50 extraordinary personalities who shaped our world on the Base blockchain.",
+  "description": "LuckyFace - Every click reveals a life. Discover 50 extraordinary personalities who shaped our world on the Base blockchain.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

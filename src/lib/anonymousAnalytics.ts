@@ -1,5 +1,5 @@
 /**
- * FATE MEET - Privacy-First Anonymous Visitor Statistics Engine
+ * LuckyFace - Privacy-First Anonymous Visitor Statistics Engine
  * 
  * CORE PRIVACY PRINCIPLES:
  * 1. Zero personal information: Never asks for names, emails, phones, or contacts.

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Compass, Sparkles, Shield, Lock, Dna, Users, Flame } from 'lucide-react';
-import { FateMeetLogo } from './FateMeetLogo';
+import { LuckyFaceLogo } from './LuckyFaceLogo';
 
 interface HeroSectionProps {
   onTriggerReveal: () => void;
@@ -28,14 +28,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
       {/* Primary Brand Emblem */}
       <div className="mb-6 flex flex-col items-center justify-center">
-        <FateMeetLogo size="xl" variant="icon" />
+        <LuckyFaceLogo size="xl" variant="icon" />
       </div>
 
-      {/* Clarifying Badge: NOT A DATING APP · INTERACTIVE RANDOM DISCOVERY */}
+      {/* Discovery Badge */}
       <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-[#0052FF]/40 bg-[#0052FF]/10 backdrop-blur-md mb-6 transition-all hover:border-[#0052FF]/70">
         <span className="w-2 h-2 rounded-full bg-[#0052FF] animate-pulse shadow-[0_0_8px_#0052FF]" />
         <span className="text-xs font-semibold tracking-wide text-blue-200">
-          Interactive Random Discovery <span className="text-slate-400">·</span> Not A Dating App
+          Interactive Random Discovery
         </span>
         <span className="text-slate-500" aria-hidden="true">·</span>
         <span className="text-[11px] font-mono text-cyan-300">

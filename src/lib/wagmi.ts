@@ -7,7 +7,7 @@ export const wagmiConfig = createConfig({
   connectors: [
     injected(),
     metaMask(),
-    coinbaseWallet({ appName: 'FATE MEET' }),
+    coinbaseWallet({ appName: 'LuckyFace' }),
   ],
   transports: {
     [base.id]: http(),

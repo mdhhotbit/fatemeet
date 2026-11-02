@@ -1,5 +1,5 @@
 import React from 'react';
-import { FateMeetLogo } from './FateMeetLogo';
+import { LuckyFaceLogo } from './LuckyFaceLogo';
 import { Lock, Shield } from 'lucide-react';
 
 interface FooterProps {
@@ -17,7 +17,7 @@ export const Footer: React.FC<FooterProps> = ({
     <footer className="w-full border-t border-white/5 bg-[#03050a] text-slate-400 text-xs py-12 px-4 sm:px-6 lg:px-8 mt-20">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-8 pb-8 border-b border-white/5">
         <div className="space-y-3">
-          <FateMeetLogo size="md" />
+          <LuckyFaceLogo size="md" />
           <p className="text-xs text-slate-500 max-w-sm leading-relaxed">
             Discover the 50 extraordinary personalities who shaped our world. Built with privacy as our core principle on the Base blockchain ecosystem.
           </p>
@@ -85,7 +85,7 @@ export const Footer: React.FC<FooterProps> = ({
       {/* Disclaimers & Copyright */}
       <div className="max-w-7xl mx-auto pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
         <p>
-          &copy; {new Date().getFullYear()} FATE MEET. Verified on Base Mainnet (Chain ID 8453). Public historical archives via Wikimedia Commons.
+          &copy; {new Date().getFullYear()} LuckyFace. Verified on Base Mainnet (Chain ID 8453). Public historical archives via Wikimedia Commons.
         </p>
 
         <p className="text-center sm:text-right">
