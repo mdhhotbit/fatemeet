@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useAccount, useDisconnect } from 'wagmi';
 import { shortenAddress } from '../lib/blockchain';
-import { Wallet, LogOut, Menu, X, ShieldCheck, Sparkles } from 'lucide-react';
+import { Wallet, LogOut, Menu, X, Shield, Lock, Compass } from 'lucide-react';
+import { FateMeetLogo } from './FateMeetLogo';
 
 interface NavbarProps {
   activeTab: 'home' | 'gallery' | 'history' | 'how-it-works';
   onSelectTab: (tab: 'home' | 'gallery' | 'history' | 'how-it-works') => void;
   onOpenWalletModal: () => void;
   onOpenContractModal: () => void;
+  onOpenPrivacyModal: () => void;
   isContractConfigured: boolean;
 }
 
@@ -16,6 +18,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSelectTab,
   onOpenWalletModal,
   onOpenContractModal,
+  onOpenPrivacyModal,
   isContractConfigured,
 }) => {
   const { address, isConnected, chain } = useAccount();
@@ -25,89 +28,94 @@ export const Navbar: React.FC<NavbarProps> = ({
   const isBaseChain = chain?.id === 8453;
 
   return (
-    <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-[#05070f]/85 border-b border-white/5 transition-all">
+    <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-[#030712]/85 border-b border-white/[0.08] transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-8">
-        {/* Zone 1: Single text element wordmark */}
+        {/* Zone 1: Compact Base-native Fatemeet brand */}
         <button
           onClick={() => {
             onSelectTab('home');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
-          className="group flex items-center gap-2.5 text-left whitespace-nowrap shrink-0 focus:outline-none"
+          className="group flex items-center text-left whitespace-nowrap shrink-0 focus:outline-none cursor-pointer"
+          aria-label="Fatemeet home"
         >
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 flex items-center justify-center shadow-lg shadow-amber-500/10 group-hover:scale-105 transition-transform duration-300">
-            <span className="font-cinzel font-black text-slate-950 text-sm">FM</span>
-          </div>
-          <span className="font-cinzel text-xl sm:text-2xl font-bold tracking-widest text-slate-100 group-hover:text-amber-200 transition-colors">
-            FATE MEET
-          </span>
+          <FateMeetLogo size="md" variant="full" />
         </button>
 
         {/* Zone 2: 4–5 clean single-line text navigation links */}
-        <nav className="hidden md:flex items-center gap-8 text-sm font-medium tracking-wide">
+        <nav className="hidden md:flex items-center gap-7 text-sm font-medium tracking-normal text-slate-300">
           <button
             onClick={() => onSelectTab('home')}
-            className={`whitespace-nowrap shrink-0 transition-colors py-1 relative ${
+            className={`whitespace-nowrap shrink-0 transition-colors py-1 relative cursor-pointer ${
               activeTab === 'home'
-                ? 'text-amber-300 font-semibold'
-                : 'text-slate-300 hover:text-white'
+                ? 'text-white font-semibold'
+                : 'text-slate-400 hover:text-white'
             }`}
           >
             Home
             {activeTab === 'home' && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-400 rounded-full" />
+              <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-[#0052FF] rounded-full shadow-[0_0_8px_#0052FF]" />
             )}
           </button>
 
           <button
             onClick={() => onSelectTab('gallery')}
-            className={`whitespace-nowrap shrink-0 transition-colors py-1 relative ${
+            className={`whitespace-nowrap shrink-0 transition-colors py-1 relative cursor-pointer ${
               activeTab === 'gallery'
-                ? 'text-amber-300 font-semibold'
-                : 'text-slate-300 hover:text-white'
+                ? 'text-white font-semibold'
+                : 'text-slate-400 hover:text-white'
             }`}
           >
             The 50 Lives
             {activeTab === 'gallery' && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-400 rounded-full" />
+              <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-[#0052FF] rounded-full shadow-[0_0_8px_#0052FF]" />
             )}
           </button>
 
           <button
             onClick={() => onSelectTab('history')}
-            className={`whitespace-nowrap shrink-0 transition-colors py-1 relative ${
+            className={`whitespace-nowrap shrink-0 transition-colors py-1 relative cursor-pointer ${
               activeTab === 'history'
-                ? 'text-amber-300 font-semibold'
-                : 'text-slate-300 hover:text-white'
+                ? 'text-white font-semibold'
+                : 'text-slate-400 hover:text-white'
             }`}
           >
             My Encounters
             {activeTab === 'history' && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-400 rounded-full" />
+              <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-[#0052FF] rounded-full shadow-[0_0_8px_#0052FF]" />
             )}
           </button>
 
           <button
             onClick={() => onSelectTab('how-it-works')}
-            className={`whitespace-nowrap shrink-0 transition-colors py-1 relative ${
+            className={`whitespace-nowrap shrink-0 transition-colors py-1 relative cursor-pointer ${
               activeTab === 'how-it-works'
-                ? 'text-amber-300 font-semibold'
-                : 'text-slate-300 hover:text-white'
+                ? 'text-white font-semibold'
+                : 'text-slate-400 hover:text-white'
             }`}
           >
             How It Works
             {activeTab === 'how-it-works' && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-400 rounded-full" />
+              <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-[#0052FF] rounded-full shadow-[0_0_8px_#0052FF]" />
             )}
           </button>
 
           <button
-            onClick={onOpenContractModal}
-            className="whitespace-nowrap shrink-0 text-slate-400 hover:text-amber-200/90 transition-colors py-1 text-xs tracking-wider uppercase flex items-center gap-1.5"
-            title="View Phase 2 Smart Contract Architecture & Remix Guide"
+            onClick={onOpenPrivacyModal}
+            className="whitespace-nowrap shrink-0 text-slate-400 hover:text-emerald-300 transition-colors py-1 text-xs tracking-wide uppercase flex items-center gap-1.5 cursor-pointer"
+            title="Privacy First & Anonymous Stats"
           >
-            <ShieldCheck className="w-3.5 h-3.5 text-amber-400/80" />
-            <span>Contract Spec</span>
+            <Lock className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Privacy</span>
+          </button>
+
+          <button
+            onClick={onOpenContractModal}
+            className="whitespace-nowrap shrink-0 text-slate-400 hover:text-blue-300 transition-colors py-1 text-xs tracking-wide uppercase flex items-center gap-1.5 cursor-pointer"
+            title="Base Blockchain Smart Contract"
+          >
+            <Shield className="w-3.5 h-3.5 text-[#0052FF]" />
+            <span>Base Contract</span>
           </button>
         </nav>
 
@@ -116,25 +124,25 @@ export const Navbar: React.FC<NavbarProps> = ({
           {isConnected && address ? (
             <div className="flex items-center gap-2">
               <div
-                className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono rounded-md border ${
+                className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono rounded-lg border ${
                   isBaseChain
-                    ? 'border-blue-500/40 bg-blue-950/40 text-blue-300'
+                    ? 'border-[#0052FF]/40 bg-[#0052FF]/10 text-blue-300'
                     : 'border-amber-500/40 bg-amber-950/40 text-amber-300'
                 }`}
               >
                 <span
-                  className={`w-1.5 h-1.5 rounded-full ${
-                    isBaseChain ? 'bg-[#0052FF]' : 'bg-amber-400'
+                  className={`w-2 h-2 rounded-full ${
+                    isBaseChain ? 'bg-[#0052FF] animate-pulse shadow-[0_0_8px_#0052FF]' : 'bg-amber-400'
                   }`}
                 />
-                {isBaseChain ? 'Base Mainnet' : chain?.name || 'Wrong Network'}
+                {isBaseChain ? 'Base Mainnet' : chain?.name || 'Switch to Base'}
               </div>
 
-              <div className="flex items-center bg-slate-900/90 border border-amber-500/25 rounded-lg px-3 py-1.5 text-xs text-slate-200">
-                <span className="font-mono text-amber-200 mr-2">{shortenAddress(address)}</span>
+              <div className="flex items-center bg-slate-900/90 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-slate-200">
+                <span className="font-mono text-blue-200 mr-2">{shortenAddress(address)}</span>
                 <button
                   onClick={() => disconnect()}
-                  className="text-slate-400 hover:text-rose-400 transition-colors ml-1"
+                  className="text-slate-400 hover:text-rose-400 transition-colors ml-1 cursor-pointer"
                   title="Disconnect Wallet"
                 >
                   <LogOut className="w-3.5 h-3.5" />
@@ -144,9 +152,9 @@ export const Navbar: React.FC<NavbarProps> = ({
           ) : (
             <button
               onClick={onOpenWalletModal}
-              className="flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-medium tracking-wide text-slate-950 bg-gradient-to-r from-amber-200 via-amber-300 to-amber-400 hover:from-amber-100 hover:to-amber-300 rounded-lg shadow-md shadow-amber-500/10 hover:shadow-amber-500/20 active:scale-95 transition-all whitespace-nowrap shrink-0"
+              className="flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 text-xs sm:text-sm font-semibold tracking-wide text-white bg-[#0052FF] hover:bg-[#1A65FF] rounded-xl shadow-lg shadow-[#0052FF]/20 hover:shadow-[#0052FF]/40 active:scale-95 transition-all whitespace-nowrap shrink-0 cursor-pointer"
             >
-              <Wallet className="w-4 h-4 text-slate-950" />
+              <Wallet className="w-4 h-4 text-white" />
               <span>Connect Wallet</span>
             </button>
           )}
@@ -154,7 +162,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-slate-300 hover:text-white focus:outline-none"
+            className="md:hidden p-2 text-slate-300 hover:text-white focus:outline-none cursor-pointer"
             aria-label="Toggle navigation menu"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -164,15 +172,15 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Mobile navigation panel */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-white/10 bg-[#070b16] px-4 pt-3 pb-5 space-y-3">
+        <div className="md:hidden border-b border-white/10 bg-[#060B18] px-4 pt-3 pb-5 space-y-2">
           <button
             onClick={() => {
               onSelectTab('home');
               setMobileMenuOpen(false);
             }}
-            className={`block w-full text-left py-2 px-3 rounded-lg text-sm ${
+            className={`block w-full text-left py-2.5 px-3 rounded-lg text-sm font-medium ${
               activeTab === 'home'
-                ? 'bg-amber-400/10 text-amber-300 font-semibold'
+                ? 'bg-[#0052FF]/15 text-blue-300 font-semibold'
                 : 'text-slate-300 hover:bg-white/5'
             }`}
           >
@@ -183,9 +191,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               onSelectTab('gallery');
               setMobileMenuOpen(false);
             }}
-            className={`block w-full text-left py-2 px-3 rounded-lg text-sm ${
+            className={`block w-full text-left py-2.5 px-3 rounded-lg text-sm font-medium ${
               activeTab === 'gallery'
-                ? 'bg-amber-400/10 text-amber-300 font-semibold'
+                ? 'bg-[#0052FF]/15 text-blue-300 font-semibold'
                 : 'text-slate-300 hover:bg-white/5'
             }`}
           >
@@ -196,9 +204,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               onSelectTab('history');
               setMobileMenuOpen(false);
             }}
-            className={`block w-full text-left py-2 px-3 rounded-lg text-sm ${
+            className={`block w-full text-left py-2.5 px-3 rounded-lg text-sm font-medium ${
               activeTab === 'history'
-                ? 'bg-amber-400/10 text-amber-300 font-semibold'
+                ? 'bg-[#0052FF]/15 text-blue-300 font-semibold'
                 : 'text-slate-300 hover:bg-white/5'
             }`}
           >
@@ -209,9 +217,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               onSelectTab('how-it-works');
               setMobileMenuOpen(false);
             }}
-            className={`block w-full text-left py-2 px-3 rounded-lg text-sm ${
+            className={`block w-full text-left py-2.5 px-3 rounded-lg text-sm font-medium ${
               activeTab === 'how-it-works'
-                ? 'bg-amber-400/10 text-amber-300 font-semibold'
+                ? 'bg-[#0052FF]/15 text-blue-300 font-semibold'
                 : 'text-slate-300 hover:bg-white/5'
             }`}
           >
@@ -219,12 +227,23 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
           <button
             onClick={() => {
+              onOpenPrivacyModal();
+              setMobileMenuOpen(false);
+            }}
+            className="block w-full text-left py-2.5 px-3 rounded-lg text-sm text-emerald-300 hover:bg-emerald-500/10 flex items-center gap-2 font-medium"
+          >
+            <Lock className="w-3.5 h-3.5" />
+            <span>Privacy & Anonymous Statistics</span>
+          </button>
+          <button
+            onClick={() => {
               onOpenContractModal();
               setMobileMenuOpen(false);
             }}
-            className="block w-full text-left py-2 px-3 rounded-lg text-sm text-amber-300/80 hover:bg-amber-500/10"
+            className="block w-full text-left py-2.5 px-3 rounded-lg text-sm text-blue-300 hover:bg-blue-500/10 flex items-center gap-2 font-medium"
           >
-            Contract Spec & Remix Guide
+            <Shield className="w-3.5 h-3.5" />
+            <span>Base Smart Contract Specification</span>
           </button>
         </div>
       )}

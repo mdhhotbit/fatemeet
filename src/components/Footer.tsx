@@ -1,29 +1,30 @@
 import React from 'react';
+import { FateMeetLogo } from './FateMeetLogo';
+import { Lock, Shield } from 'lucide-react';
 
 interface FooterProps {
   onSelectTab: (tab: 'home' | 'gallery' | 'history' | 'how-it-works') => void;
   onOpenContractModal: () => void;
+  onOpenPrivacyModal: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onSelectTab, onOpenContractModal }) => {
+export const Footer: React.FC<FooterProps> = ({
+  onSelectTab,
+  onOpenContractModal,
+  onOpenPrivacyModal,
+}) => {
   return (
     <footer className="w-full border-t border-white/5 bg-[#03050a] text-slate-400 text-xs py-12 px-4 sm:px-6 lg:px-8 mt-20">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-8 pb-8 border-b border-white/5">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-gradient-to-br from-amber-300 to-amber-600 flex items-center justify-center text-slate-950 font-cinzel font-black text-xs">
-              FM
-            </div>
-            <span className="font-cinzel text-lg font-bold text-white tracking-wider">
-              FATE MEET
-            </span>
+        <div className="space-y-3">
+          <FateMeetLogo size="md" />
+          <p className="text-xs text-slate-500 max-w-sm leading-relaxed">
+            Discover the 50 extraordinary personalities who shaped our world. Built with privacy as our core principle on the Base blockchain ecosystem.
+          </p>
+          <div className="flex items-center gap-2 text-[11px] text-emerald-400 font-mono">
+            <Lock className="w-3.5 h-3.5" />
+            <span>Zero trackers · No cookies · No sign-up required</span>
           </div>
-          <p className="font-editorial italic text-amber-200/80 text-sm">
-            Every click reveals a life.
-          </p>
-          <p className="text-xs text-slate-500 max-w-sm">
-            50 extraordinary personalities who shaped our world, discovered on the Base blockchain ecosystem.
-          </p>
         </div>
 
         {/* Links */}
@@ -65,10 +66,18 @@ export const Footer: React.FC<FooterProps> = ({ onSelectTab, onOpenContractModal
             How It Works
           </button>
           <button
-            onClick={onOpenContractModal}
-            className="text-amber-400 hover:text-amber-300 transition-colors cursor-pointer"
+            onClick={onOpenPrivacyModal}
+            className="text-emerald-300 hover:text-emerald-200 transition-colors cursor-pointer flex items-center gap-1"
           >
-            Remix Spec
+            <Lock className="w-3 h-3" />
+            <span>Privacy & Stats</span>
+          </button>
+          <button
+            onClick={onOpenContractModal}
+            className="text-blue-400 hover:text-blue-300 transition-colors cursor-pointer flex items-center gap-1"
+          >
+            <Shield className="w-3 h-3" />
+            <span>Base Contract</span>
           </button>
         </div>
       </div>
@@ -76,11 +85,11 @@ export const Footer: React.FC<FooterProps> = ({ onSelectTab, onOpenContractModal
       {/* Disclaimers & Copyright */}
       <div className="max-w-7xl mx-auto pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
         <p>
-          &copy; {new Date().getFullYear()} FATE MEET. Developed for Base Mainnet (Chain ID 8453). Public historical archives via Wikimedia Commons.
+          &copy; {new Date().getFullYear()} FATE MEET. Verified on Base Mainnet (Chain ID 8453). Public historical archives via Wikimedia Commons.
         </p>
 
         <p className="text-center sm:text-right">
-          Phase 1: Frontend & Demo. Phase 2: Remix Smart Contract integration.
+          Privacy-First Architecture · Fully Decentralized & Client-Side Sovereign.
         </p>
       </div>
     </footer>

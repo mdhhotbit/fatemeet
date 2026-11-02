@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Share2, Copy, Check, Sparkles } from 'lucide-react';
+import { X, Share2, Copy, Check, Sparkles, Award } from 'lucide-react';
 import { Personality } from '../types';
 import { PortraitImage } from './PortraitImage';
 import { getInitials } from '../lib/utils';
@@ -18,13 +18,13 @@ export const PersonalityDetailModal: React.FC<PersonalityDetailModalProps> = ({
   if (!personality) return null;
 
   const handleShare = () => {
-    const text = `Explore ${personality.name} on FATE MEET. 50 extraordinary lives waiting to be discovered.\n${window.location.origin}`;
+    const text = `I just discovered ${personality.name} on Fatemeet — the interactive historical discovery experience on Base. Discover 50 extraordinary lives:\n${window.location.origin}`;
     const xUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
     window.open(xUrl, '_blank', 'noopener,noreferrer');
   };
 
   const handleCopy = () => {
-    const text = `${personality.name} — ${personality.profession} (${personality.nationality}). Discover extraordinary lives on FATE MEET: ${window.location.origin}`;
+    const text = `${personality.name} — ${personality.profession} (${personality.nationality}). Discover extraordinary historical lives on Fatemeet: ${window.location.origin}`;
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -32,20 +32,21 @@ export const PersonalityDetailModal: React.FC<PersonalityDetailModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/85 backdrop-blur-md">
-      <div className="relative w-full max-w-2xl bg-[#090e1d] border border-amber-500/30 rounded-2xl shadow-2xl shadow-amber-500/10 overflow-hidden my-auto">
+      <div className="relative w-full max-w-2xl bg-[#060C1E] border border-[#0052FF]/30 rounded-3xl shadow-2xl shadow-[#0052FF]/15 overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200">
         {/* Top bar */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-slate-950/60">
-          <div className="flex items-center gap-2">
-            <span className="font-cinzel text-xs font-bold text-amber-200 uppercase tracking-widest">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#040816]/90">
+          <div className="flex items-center gap-2.5">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#0052FF]/15 text-blue-300 border border-[#0052FF]/30 font-display uppercase tracking-wider">
+              <Sparkles className="w-3 h-3 text-[#0052FF]" />
               Historical Dossier
             </span>
-            <span className="text-slate-500" aria-hidden="true">·</span>
-            <span className="text-xs font-mono text-amber-400/80">ID #{personality.id}</span>
+            <span className="text-slate-600" aria-hidden="true">·</span>
+            <span className="text-xs font-mono text-slate-400">ID #{personality.id}</span>
           </div>
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
             aria-label="Close dossier"
           >
             <X className="w-5 h-5" />
@@ -53,10 +54,10 @@ export const PersonalityDetailModal: React.FC<PersonalityDetailModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-5 sm:p-7 max-h-[80vh] overflow-y-auto space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 items-start">
+        <div className="p-6 sm:p-8 max-h-[80vh] overflow-y-auto space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-start">
             <div className="sm:col-span-5 flex flex-col items-center">
-              <div className="w-full max-w-[240px] sm:max-w-none rounded-xl overflow-hidden border border-amber-500/30 shadow-xl">
+              <div className="w-full max-w-[220px] sm:max-w-none rounded-2xl overflow-hidden border border-[#0052FF]/30 shadow-2xl shadow-[#0052FF]/10 ring-1 ring-white/10">
                 <PortraitImage
                   src={personality.portraitUrl}
                   alt={personality.name}
@@ -64,47 +65,49 @@ export const PersonalityDetailModal: React.FC<PersonalityDetailModalProps> = ({
                   aspectRatio="portrait"
                 />
               </div>
-              <p className="text-[10px] text-slate-500 text-center mt-2 px-1 line-clamp-1">
+              <p className="text-[10px] text-slate-500 text-center mt-2.5 px-2 line-clamp-1">
                 {personality.imageAttribution}
               </p>
             </div>
 
             <div className="sm:col-span-7 space-y-3">
-              <div className="flex flex-wrap items-center gap-2 text-xs text-amber-300/80">
-                <span>{personality.category}</span>
-                <span aria-hidden="true">·</span>
-                <span>{personality.nationality}</span>
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <span className="px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/25 text-blue-300 font-medium">
+                  {personality.category}
+                </span>
+                <span className="text-slate-500" aria-hidden="true">·</span>
+                <span className="text-slate-300">{personality.nationality}</span>
               </div>
 
-              <h2 className="font-cinzel text-2xl sm:text-3xl font-bold text-white">
+              <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
                 {personality.name}
               </h2>
 
-              <p className="font-editorial italic text-amber-100 text-base">
+              <p className="text-blue-200/90 font-medium text-sm sm:text-base">
                 {personality.profession}
               </p>
 
-              <div className="text-xs font-mono text-slate-400">
+              <div className="text-xs font-mono text-slate-400 py-1">
                 <span>Lifetime: {personality.birthDate}</span>
                 {personality.deathDate ? (
                   <span> — {personality.deathDate}</span>
                 ) : (
-                  <span className="text-emerald-400 ml-1">(Living)</span>
+                  <span className="text-emerald-400 ml-1.5 font-sans font-semibold">(Living)</span>
                 )}
               </div>
 
               {personality.quote && (
-                <p className="text-xs sm:text-sm italic text-amber-200/80 bg-amber-500/5 p-3 rounded border-l-2 border-amber-400/60 font-editorial">
+                <div className="text-xs sm:text-sm italic text-blue-100/90 bg-[#0052FF]/10 p-3.5 rounded-xl border-l-2 border-[#0052FF] leading-relaxed">
                   "{personality.quote}"
-                </p>
+                </div>
               )}
             </div>
           </div>
 
           {/* Biography */}
-          <div className="space-y-2 pt-2 border-t border-white/5">
-            <h3 className="text-xs uppercase tracking-widest text-slate-400 font-semibold">
-              Biography
+          <div className="space-y-2 pt-4 border-t border-white/10">
+            <h3 className="text-xs font-display font-bold uppercase tracking-wider text-slate-400">
+              Biography & Historical Legacy
             </h3>
             <p className="text-slate-300 text-sm leading-relaxed">
               {personality.biography}
@@ -112,44 +115,45 @@ export const PersonalityDetailModal: React.FC<PersonalityDetailModalProps> = ({
           </div>
 
           {/* Major Achievements */}
-          <div className="space-y-2">
-            <h3 className="text-xs uppercase tracking-widest text-slate-400 font-semibold">
+          <div className="space-y-2.5 pt-2">
+            <h3 className="text-xs font-display font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+              <Award className="w-3.5 h-3.5 text-[#0052FF]" />
               Notable Achievements
             </h3>
-            <ul className="space-y-1.5 text-xs text-slate-300">
+            <ul className="space-y-2 text-xs sm:text-sm text-slate-300">
               {personality.majorAchievements.map((achieve, idx) => (
-                <li key={idx} className="flex items-start gap-2">
-                  <span className="text-amber-400 mt-0.5">✦</span>
-                  <span>{achieve}</span>
+                <li key={idx} className="flex items-start gap-2.5 p-2 rounded-lg bg-white/[0.02] border border-white/5">
+                  <span className="text-[#0052FF] font-bold mt-0.5">✦</span>
+                  <span className="leading-relaxed">{achieve}</span>
                 </li>
               ))}
             </ul>
           </div>
 
           {/* Footer Actions */}
-          <div className="pt-4 border-t border-white/10 flex items-center justify-between">
+          <div className="pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <button
                 onClick={handleShare}
-                className="px-3.5 py-2 bg-slate-900 border border-amber-500/30 text-amber-200 hover:text-white text-xs font-medium rounded-lg flex items-center gap-1.5 cursor-pointer"
+                className="px-4 py-2 bg-[#0052FF] hover:bg-blue-600 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer shadow-lg shadow-[#0052FF]/20 transition-all hover:scale-[1.02]"
               >
-                <Share2 className="w-3.5 h-3.5 text-amber-400" />
-                <span>Share</span>
+                <Share2 className="w-3.5 h-3.5" />
+                <span>Share Discovery</span>
               </button>
 
               <button
                 onClick={handleCopy}
-                className="px-3 py-2 bg-slate-900 border border-white/10 text-slate-300 hover:text-white text-xs rounded-lg flex items-center gap-1 cursor-pointer"
+                className="px-3.5 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white text-xs font-medium rounded-xl flex items-center gap-1.5 cursor-pointer transition-colors"
               >
                 {copied ? (
                   <>
                     <Check className="w-3.5 h-3.5 text-emerald-400" />
-                    <span className="text-emerald-400">Copied</span>
+                    <span className="text-emerald-400 font-semibold">Copied!</span>
                   </>
                 ) : (
                   <>
                     <Copy className="w-3.5 h-3.5" />
-                    <span>Copy Info</span>
+                    <span>Copy Summary</span>
                   </>
                 )}
               </button>
@@ -157,7 +161,7 @@ export const PersonalityDetailModal: React.FC<PersonalityDetailModalProps> = ({
 
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg cursor-pointer"
+              className="px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs font-semibold rounded-xl border border-white/10 cursor-pointer transition-colors"
             >
               Close Dossier
             </button>

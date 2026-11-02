@@ -1,11 +1,11 @@
 import { EncounterRecord } from '../types';
 
-const DEMO_STORAGE_KEY = 'fate_meet_demo_encounters';
+const LOCAL_STORAGE_KEY = 'fate_meet_encounters';
 const CHAIN_STORAGE_KEY_PREFIX = 'fate_meet_chain_encounters_';
 
-export function getDemoEncounters(): EncounterRecord[] {
+export function getLocalEncounters(): EncounterRecord[] {
   try {
-    const raw = localStorage.getItem(DEMO_STORAGE_KEY);
+    const raw = localStorage.getItem(LOCAL_STORAGE_KEY) || localStorage.getItem('fate_meet_demo_encounters');
     if (!raw) return [];
     return JSON.parse(raw);
   } catch {
@@ -13,32 +13,38 @@ export function getDemoEncounters(): EncounterRecord[] {
   }
 }
 
-export function saveDemoEncounter(personalityId: number): EncounterRecord {
+export function saveLocalEncounter(personalityId: number): EncounterRecord {
   const newRecord: EncounterRecord = {
-    id: `demo_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+    id: `enc_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
     personalityId,
     timestamp: Date.now(),
-    isDemo: true,
+    isDemo: false,
   };
 
   try {
-    const existing = getDemoEncounters();
+    const existing = getLocalEncounters();
     const updated = [newRecord, ...existing].slice(0, 100);
-    localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(updated));
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
   } catch (err) {
-    console.warn('Failed to save demo encounter to localStorage', err);
+    console.warn('Failed to save encounter to localStorage', err);
   }
 
   return newRecord;
 }
 
-export function clearDemoEncounters(): void {
+export function clearLocalEncounters(): void {
   try {
-    localStorage.removeItem(DEMO_STORAGE_KEY);
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    localStorage.removeItem('fate_meet_demo_encounters');
   } catch (err) {
-    console.warn('Failed to clear demo encounters', err);
+    console.warn('Failed to clear encounters', err);
   }
 }
+
+// Aliases for compatibility
+export const getDemoEncounters = getLocalEncounters;
+export const saveDemoEncounter = saveLocalEncounter;
+export const clearDemoEncounters = clearLocalEncounters;
 
 export function getChainEncounters(walletAddress?: string): EncounterRecord[] {
   if (!walletAddress) return [];

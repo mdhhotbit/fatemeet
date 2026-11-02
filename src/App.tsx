@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { wagmiConfig } from './lib/wagmi';
 import { IS_CONTRACT_CONFIGURED } from './config/contract';
+import { recordVisitSession } from './lib/anonymousAnalytics';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
 import { GallerySection } from './components/GallerySection';
@@ -11,6 +12,7 @@ import { HowItWorksSection } from './components/HowItWorksSection';
 import { RevealModal } from './components/RevealModal';
 import { WalletModal } from './components/WalletModal';
 import { ContractInfoModal } from './components/ContractInfoModal';
+import { PrivacyStatsModal } from './components/PrivacyStatsModal';
 import { Footer } from './components/Footer';
 import { PERSONALITIES } from './data/personalities';
 import { PortraitImage } from './components/PortraitImage';
@@ -24,9 +26,15 @@ export function MainApp() {
   const [isRevealOpen, setIsRevealOpen] = useState(false);
   const [isWalletOpen, setIsWalletOpen] = useState(false);
   const [isContractOpen, setIsContractOpen] = useState(false);
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Spotlight preview: pick 4 iconic personalities from different categories
+  // Initialize anonymous visitor session
+  useEffect(() => {
+    recordVisitSession();
+  }, []);
+
+  // Spotlight personalities: 4 iconic figures from diverse categories
   const spotlightPersonalities = [
     PERSONALITIES[0], // Albert Einstein
     PERSONALITIES[14], // Nelson Mandela
@@ -38,6 +46,10 @@ export function MainApp() {
     setRefreshTrigger((prev) => prev + 1);
   };
 
+  const handleActivityCleared = () => {
+    setRefreshTrigger((prev) => prev + 1);
+  };
+
   return (
     <div className="min-h-screen bg-[#05070f] text-slate-100 flex flex-col font-sans-clean">
       {/* Top Navigation */}
@@ -46,6 +58,7 @@ export function MainApp() {
         onSelectTab={setActiveTab}
         onOpenWalletModal={() => setIsWalletOpen(true)}
         onOpenContractModal={() => setIsContractOpen(true)}
+        onOpenPrivacyModal={() => setIsPrivacyOpen(true)}
         isContractConfigured={IS_CONTRACT_CONFIGURED}
       />
 
@@ -56,6 +69,7 @@ export function MainApp() {
             <HeroSection
               onTriggerReveal={() => setIsRevealOpen(true)}
               onOpenContractModal={() => setIsContractOpen(true)}
+              onOpenPrivacyModal={() => setIsPrivacyOpen(true)}
               isContractConfigured={IS_CONTRACT_CONFIGURED}
               totalEncountersCount={50}
             />
@@ -152,6 +166,7 @@ export function MainApp() {
           <EncountersHistory
             onTriggerReveal={() => setIsRevealOpen(true)}
             refreshTrigger={refreshTrigger}
+            onOpenPrivacyModal={() => setIsPrivacyOpen(true)}
           />
         )}
 
@@ -159,6 +174,7 @@ export function MainApp() {
           <HowItWorksSection
             onOpenContractModal={() => setIsContractOpen(true)}
             onTriggerReveal={() => setIsRevealOpen(true)}
+            onOpenPrivacyModal={() => setIsPrivacyOpen(true)}
           />
         )}
       </main>
@@ -167,6 +183,7 @@ export function MainApp() {
       <Footer
         onSelectTab={setActiveTab}
         onOpenContractModal={() => setIsContractOpen(true)}
+        onOpenPrivacyModal={() => setIsPrivacyOpen(true)}
       />
 
       {/* Reveal Modal */}
@@ -184,10 +201,17 @@ export function MainApp() {
         onClose={() => setIsWalletOpen(false)}
       />
 
-      {/* Contract Specification & Remix Guide Modal */}
+      {/* Contract Specification & Architecture Modal */}
       <ContractInfoModal
         isOpen={isContractOpen}
         onClose={() => setIsContractOpen(false)}
+      />
+
+      {/* Privacy Charter & Anonymous Metrics Modal */}
+      <PrivacyStatsModal
+        isOpen={isPrivacyOpen}
+        onClose={() => setIsPrivacyOpen(false)}
+        onActivityCleared={handleActivityCleared}
       />
     </div>
   );

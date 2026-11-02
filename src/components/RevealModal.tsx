@@ -11,12 +11,14 @@ import {
   ExternalLink,
   RotateCcw,
   AlertCircle,
-  ShieldCheck,
   CheckCircle2,
   Loader2,
+  Lock,
+  Zap,
 } from 'lucide-react';
 import { Personality, RevealStatus } from '../types';
 import { getRandomPersonality, getPersonalityById } from '../lib/random';
+import { PERSONALITIES } from '../data/personalities';
 import {
   CONTRACT_ADDRESS,
   CONTRACT_ABI,
@@ -24,7 +26,8 @@ import {
   BASE_CHAIN_ID,
 } from '../config/contract';
 import { parseEncounterRevealedEvent, getBaseScanTxUrl } from '../lib/blockchain';
-import { saveDemoEncounter, saveChainEncounter } from '../lib/encountersStorage';
+import { saveLocalEncounter, saveChainEncounter } from '../lib/encountersStorage';
+import { recordProfileSelection } from '../lib/anonymousAnalytics';
 import { PortraitImage } from './PortraitImage';
 import { getInitials } from '../lib/utils';
 
@@ -45,8 +48,6 @@ export const RevealModal: React.FC<RevealModalProps> = ({
 }) => {
   const { isConnected, chain, address } = useAccount();
 
-  // Mode: if contract is configured and wallet connected on Base, can do blockchain
-  // By default, if contract not configured or wallet not connected, defaults to Demo Mode
   const canDoBlockchain = Boolean(IS_CONTRACT_CONFIGURED && isConnected && chain?.id === BASE_CHAIN_ID);
   const [useBlockchainMode, setUseBlockchainMode] = useState(false);
 
@@ -56,8 +57,12 @@ export const RevealModal: React.FC<RevealModalProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
 
+  // Cycling names animation during discovery
+  const [shufflingName, setShufflingName] = useState('Albert Einstein');
+  const [shufflingCategory, setShufflingCategory] = useState('Scientists & Inventors');
+
   // Wagmi contract write
-  const { writeContractAsync, isPending: isWalletApprovalPending } = useWriteContract();
+  const { writeContractAsync } = useWriteContract();
 
   // Transaction receipt watcher
   const {
@@ -69,13 +74,26 @@ export const RevealModal: React.FC<RevealModalProps> = ({
     hash: currentTxHash || undefined,
   });
 
+  // Cycle names rapidly during shuffling animation
+  useEffect(() => {
+    let interval: any;
+    if (status === 'selecting') {
+      interval = setInterval(() => {
+        const rand = PERSONALITIES[Math.floor(Math.random() * PERSONALITIES.length)];
+        setShufflingName(rand.name);
+        setShufflingCategory(rand.category);
+      }, 90);
+    }
+    return () => clearInterval(interval);
+  }, [status]);
+
   // Trigger reveal automatically when modal opens if idle
   useEffect(() => {
     if (isOpen && status === 'idle' && !revealedPersonality) {
       if (canDoBlockchain && useBlockchainMode) {
         startBlockchainReveal();
       } else {
-        startDemoReveal();
+        startInstantReveal();
       }
     }
   }, [isOpen]);
@@ -89,11 +107,12 @@ export const RevealModal: React.FC<RevealModalProps> = ({
         if (found) {
           setRevealedPersonality(found);
           setStatus('revealed');
+          recordProfileSelection(found.id);
           if (address) {
             saveChainEncounter(address, found.id, currentTxHash);
             onEncounterSaved();
           }
-          triggerGoldConfetti();
+          triggerElectricConfetti();
         } else {
           setStatus('failed');
           setErrorMessage(`Received personality ID ${decoded.personalityId} outside 1-50 range.`);
@@ -108,34 +127,35 @@ export const RevealModal: React.FC<RevealModalProps> = ({
     }
   }, [isTxSuccess, isTxError, txReceipt]);
 
-  const triggerGoldConfetti = () => {
+  const triggerElectricConfetti = () => {
     try {
       confetti({
-        particleCount: 45,
-        spread: 60,
-        origin: { y: 0.65 },
-        colors: ['#D4AF37', '#F5D77F', '#FFF6D5', '#0052FF'],
-        ticks: 200,
+        particleCount: 55,
+        spread: 70,
+        origin: { y: 0.62 },
+        colors: ['#0052FF', '#38BDF8', '#FFFFFF', '#F5D77F'],
+        ticks: 220,
       });
     } catch {
       // safe fallback
     }
   };
 
-  const startDemoReveal = () => {
+  const startInstantReveal = () => {
     setStatus('selecting');
     setErrorMessage(null);
     setCurrentTxHash(null);
 
-    // Cinematic delay to create suspense and allow animation
+    // Fast, responsive 1.4s delay for fun slot-machine anticipation
     setTimeout(() => {
       const selected = getRandomPersonality(revealedPersonality?.id);
       setRevealedPersonality(selected);
       setStatus('revealed');
-      saveDemoEncounter(selected.id);
+      saveLocalEncounter(selected.id);
+      recordProfileSelection(selected.id);
       onEncounterSaved();
-      triggerGoldConfetti();
-    }, 1800);
+      triggerElectricConfetti();
+    }, 1400);
   };
 
   const startBlockchainReveal = async () => {
@@ -153,7 +173,7 @@ export const RevealModal: React.FC<RevealModalProps> = ({
     if (!IS_CONTRACT_CONFIGURED || !CONTRACT_ADDRESS) {
       setStatus('failed');
       setErrorMessage(
-        'Smart contract address has not yet been deployed to Base Mainnet (Phase 1). You can view the Solidity code and Remix instructions via "Contract Spec", or run in Demo Mode.'
+        'Base Mainnet contract address is not yet active. You can view the Solidity code via "Base Contract", or experience your encounter instantly.'
       );
       return;
     }
@@ -186,7 +206,7 @@ export const RevealModal: React.FC<RevealModalProps> = ({
     if (useBlockchainMode && canDoBlockchain) {
       startBlockchainReveal();
     } else {
-      startDemoReveal();
+      startInstantReveal();
     }
   };
 
@@ -209,31 +229,31 @@ export const RevealModal: React.FC<RevealModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/90 backdrop-blur-md">
-      <div className="relative w-full max-w-3xl bg-[#090d1a] border border-amber-500/30 rounded-2xl shadow-2xl shadow-amber-500/10 overflow-hidden my-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/85 backdrop-blur-xl">
+      <div className="relative w-full max-w-3xl bg-[#060C1E] border border-[#0052FF]/30 rounded-3xl shadow-2xl shadow-[#0052FF]/15 overflow-hidden my-auto">
         {/* Header ribbon */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-slate-950/70">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.08] bg-slate-950/70">
           <div className="flex items-center gap-3">
-            <div className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
-            <span className="font-cinzel text-sm sm:text-base font-bold tracking-wider text-amber-200">
-              DESTINY ENCOUNTER
+            <span className="w-2.5 h-2.5 rounded-full bg-[#0052FF] animate-pulse shadow-[0_0_8px_#0052FF]" />
+            <span className="font-display text-sm sm:text-base font-bold tracking-wider text-white">
+              DESTINY DISCOVERY
             </span>
 
             {/* Mode Tag */}
             <span
-              className={`text-xs px-2.5 py-0.5 rounded font-mono ${
+              className={`text-xs px-3 py-1 rounded-full font-mono font-medium ${
                 useBlockchainMode && canDoBlockchain
-                  ? 'bg-blue-900/40 text-blue-300 border border-blue-500/30'
-                  : 'bg-amber-950/40 text-amber-300 border border-amber-500/30'
+                  ? 'bg-[#0052FF]/20 text-blue-300 border border-[#0052FF]/40'
+                  : 'bg-slate-900 text-slate-300 border border-white/10'
               }`}
             >
-              {useBlockchainMode && canDoBlockchain ? 'Base Mainnet' : 'DEMO MODE'}
+              {useBlockchainMode && canDoBlockchain ? 'Base Mainnet On-Chain' : 'Instant Discovery'}
             </span>
           </div>
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
             aria-label="Close encounter modal"
           >
             <X className="w-5 h-5" />
@@ -241,28 +261,37 @@ export const RevealModal: React.FC<RevealModalProps> = ({
         </div>
 
         {/* Modal Body */}
-        <div className="p-5 sm:p-8 max-h-[85vh] overflow-y-auto">
-          {/* STATE 1: SELECTING / SHUFFLING (Demo Mode) */}
+        <div className="p-6 sm:p-8 max-h-[85vh] overflow-y-auto">
+          {/* STATE 1: SELECTING / SHUFFLING (Fun slot-machine vortex) */}
           {status === 'selecting' && (
-            <div className="py-16 sm:py-24 flex flex-col items-center justify-center text-center">
+            <div className="py-14 sm:py-20 flex flex-col items-center justify-center text-center">
               <div className="relative mb-8">
-                <div className="w-24 h-24 rounded-full border border-amber-500/30 flex items-center justify-center animate-spin-slow">
-                  <div className="w-16 h-16 rounded-full border border-dashed border-amber-400 flex items-center justify-center animate-spin">
-                    <Compass className="w-8 h-8 text-amber-300" />
+                {/* Outer spinning radar */}
+                <div className="w-28 h-28 rounded-full border-2 border-[#0052FF]/30 flex items-center justify-center animate-spin-slow">
+                  <div className="w-20 h-20 rounded-full border border-dashed border-[#38BDF8] flex items-center justify-center animate-spin">
+                    <Compass className="w-9 h-9 text-[#0052FF]" />
                   </div>
                 </div>
-                <div className="absolute inset-0 bg-amber-400/20 rounded-full blur-xl animate-pulse" />
+                <div className="absolute inset-0 bg-[#0052FF]/25 rounded-full blur-2xl animate-pulse" />
               </div>
 
-              <h2 className="font-cinzel text-2xl sm:text-3xl font-bold text-white mb-3">
-                Aligning The Threads Of Time
-              </h2>
-              <p className="font-editorial italic text-slate-400 text-base sm:text-lg max-w-md">
-                Searching 50 extraordinary lives across world history...
+              {/* Live rapid name cycling */}
+              <div className="min-h-[50px] flex flex-col items-center justify-center mb-4">
+                <span className="text-xs uppercase tracking-widest text-[#38BDF8] font-mono font-semibold">
+                  {shufflingCategory}
+                </span>
+                <span className="font-display text-2xl sm:text-4xl font-black text-white mt-1 transition-all">
+                  {shufflingName}
+                </span>
+              </div>
+
+              <p className="font-sans-clean text-slate-400 text-sm max-w-md">
+                Interrogating the historical pantheon for an unexpected match...
               </p>
-              <div className="mt-6 flex items-center gap-2 text-xs font-mono text-amber-400/80">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Simulating Unbiased Destiny Match</span>
+
+              <div className="mt-6 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0052FF]/10 border border-[#0052FF]/30 text-xs font-mono text-blue-300">
+                <Zap className="w-3.5 h-3.5 text-[#38BDF8] animate-pulse" />
+                <span>Unbiased Randomness Algorithm</span>
               </div>
             </div>
           )}
@@ -270,31 +299,31 @@ export const RevealModal: React.FC<RevealModalProps> = ({
           {/* STATE 2: BLOCKCHAIN TRANSACTION PROGRESS */}
           {(status === 'waiting_wallet' || status === 'confirming') && (
             <div className="py-16 sm:py-20 flex flex-col items-center justify-center text-center">
-              <div className="w-20 h-20 rounded-full bg-blue-950/50 border border-blue-500/40 flex items-center justify-center mb-6 relative">
-                <Loader2 className="w-10 h-10 text-blue-400 animate-spin" />
-                <div className="absolute inset-0 bg-blue-500/10 rounded-full blur-lg" />
+              <div className="w-20 h-20 rounded-2xl bg-[#0052FF]/10 border border-[#0052FF]/40 flex items-center justify-center mb-6 relative">
+                <Loader2 className="w-10 h-10 text-[#0052FF] animate-spin" />
+                <div className="absolute inset-0 bg-[#0052FF]/20 rounded-2xl blur-xl" />
               </div>
 
-              <h2 className="font-cinzel text-2xl font-bold text-white mb-2">
+              <h2 className="font-display text-2xl sm:text-3xl font-black text-white mb-2">
                 {status === 'waiting_wallet'
-                  ? 'Awaiting Wallet Approval'
-                  : 'Recording Encounter on Base'}
+                  ? 'Awaiting Wallet Confirmation'
+                  : 'Recording On-Chain on Base'}
               </h2>
 
               <p className="text-sm text-slate-300 max-w-md mb-6 leading-relaxed">
                 {status === 'waiting_wallet'
-                  ? 'Please confirm the reveal() transaction in your wallet. Only network gas is required.'
-                  : 'Transaction submitted! Waiting for Base blockchain confirmation and EncounterRevealed event...'}
+                  ? 'Please confirm the reveal() call in your EVM wallet. Only minimal Base network gas is required.'
+                  : 'Transaction submitted! Awaiting Base block inclusion and EncounterRevealed event...'}
               </p>
 
               {currentTxHash && (
-                <div className="p-3 rounded-lg bg-slate-900 border border-white/10 text-xs font-mono flex items-center gap-2">
-                  <span className="text-slate-400">Tx Hash:</span>
+                <div className="p-3.5 rounded-xl bg-slate-900 border border-white/10 text-xs font-mono flex items-center gap-2">
+                  <span className="text-slate-400">Transaction:</span>
                   <a
                     href={getBaseScanTxUrl(currentTxHash)}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-blue-400 hover:text-blue-300 underline flex items-center gap-1"
+                    className="text-[#38BDF8] hover:text-white underline flex items-center gap-1 font-semibold"
                   >
                     <span>{currentTxHash.slice(0, 10)}...{currentTxHash.slice(-8)}</span>
                     <ExternalLink className="w-3 h-3" />
@@ -307,30 +336,30 @@ export const RevealModal: React.FC<RevealModalProps> = ({
           {/* STATE 3: ERROR / FAILED */}
           {status === 'failed' && (
             <div className="py-12 flex flex-col items-center justify-center text-center">
-              <div className="w-16 h-16 rounded-full bg-rose-950/50 border border-rose-500/40 flex items-center justify-center mb-5 text-rose-400">
+              <div className="w-16 h-16 rounded-2xl bg-rose-950/50 border border-rose-500/40 flex items-center justify-center mb-5 text-rose-400">
                 <AlertCircle className="w-8 h-8" />
               </div>
 
-              <h2 className="font-cinzel text-xl sm:text-2xl font-bold text-white mb-2">
+              <h2 className="font-display text-2xl font-black text-white mb-2">
                 Encounter Interrupted
               </h2>
 
-              <p className="text-sm text-slate-300 max-w-md mb-6 bg-slate-950/80 p-4 rounded-lg border border-white/5">
-                {errorMessage || 'An error occurred while revealing destiny.'}
+              <p className="text-sm text-slate-300 max-w-md mb-6 bg-slate-950/80 p-4 rounded-xl border border-white/5">
+                {errorMessage || 'An error occurred during discovery.'}
               </p>
 
               <div className="flex flex-wrap items-center justify-center gap-3">
                 <button
-                  onClick={startDemoReveal}
-                  className="px-5 py-2.5 bg-gradient-to-r from-amber-300 to-amber-500 text-slate-950 font-cinzel text-xs font-bold uppercase tracking-wider rounded-lg hover:from-amber-200 hover:to-amber-400 transition-all cursor-pointer"
+                  onClick={startInstantReveal}
+                  className="px-6 py-3 bg-[#0052FF] hover:bg-[#1A65FF] text-white font-display text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-lg shadow-[#0052FF]/20"
                 >
-                  Try in Demo Mode
+                  Try Instant Encounter
                 </button>
                 <button
                   onClick={onOpenContractModal}
-                  className="px-5 py-2.5 bg-slate-900 text-slate-200 border border-white/10 text-xs font-medium rounded-lg hover:bg-slate-800 transition-all cursor-pointer"
+                  className="px-6 py-3 bg-slate-900 text-slate-200 border border-white/10 text-xs font-semibold rounded-xl hover:bg-slate-800 transition-all cursor-pointer"
                 >
-                  View Contract Architecture
+                  View Contract Spec
                 </button>
               </div>
             </div>
@@ -339,21 +368,21 @@ export const RevealModal: React.FC<RevealModalProps> = ({
           {/* STATE 4: REVEALED PERSONALITY CARD */}
           {status === 'revealed' && revealedPersonality && (
             <div className="space-y-6">
-              {/* Top Banner Notice for Demo vs Blockchain */}
-              <div className="flex items-center justify-between text-xs py-2 px-3.5 rounded-lg bg-slate-950/80 border border-white/5">
+              {/* Top Banner Notice */}
+              <div className="flex items-center justify-between text-xs py-2.5 px-4 rounded-xl bg-slate-950 border border-white/[0.08]">
                 <div className="flex items-center gap-2">
                   {currentTxHash ? (
                     <>
                       <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                      <span className="text-slate-300">
-                        Verified Base Transaction Event Confirmed
+                      <span className="text-slate-200 font-medium">
+                        Base Mainnet Verified Transaction
                       </span>
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-4 h-4 text-amber-400" />
-                      <span className="text-slate-300">
-                        Demo Encounter · Unbiased Local Random Match
+                      <Sparkles className="w-4 h-4 text-[#38BDF8]" />
+                      <span className="text-slate-200 font-medium">
+                        Unbiased Historical Destiny Match
                       </span>
                     </>
                   )}
@@ -364,13 +393,16 @@ export const RevealModal: React.FC<RevealModalProps> = ({
                     href={getBaseScanTxUrl(currentTxHash)}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-blue-400 hover:text-blue-300 font-mono flex items-center gap-1 underline"
+                    className="text-[#38BDF8] hover:text-white font-mono flex items-center gap-1 underline"
                   >
                     <span>View on BaseScan</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 ) : (
-                  <span className="text-amber-400/90 font-mono">Phase 1 Demo</span>
+                  <span className="text-emerald-400 font-mono text-[11px] flex items-center gap-1">
+                    <Lock className="w-3 h-3" />
+                    <span>Private & Anonymous</span>
+                  </span>
                 )}
               </div>
 
@@ -378,17 +410,17 @@ export const RevealModal: React.FC<RevealModalProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
                 {/* Portrait Column */}
                 <div className="md:col-span-5 flex flex-col items-center">
-                  <div className="w-full max-w-[280px] sm:max-w-none rounded-xl overflow-hidden border-2 border-amber-500/40 gold-border-glow shadow-2xl relative group">
+                  <div className="w-full max-w-[280px] sm:max-w-none rounded-2xl overflow-hidden border-2 border-[#0052FF]/50 shadow-2xl shadow-[#0052FF]/20 relative group">
                     <PortraitImage
                       src={revealedPersonality.portraitUrl}
                       alt={revealedPersonality.name}
                       initials={getInitials(revealedPersonality.name)}
                       aspectRatio="hero"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-60" />
-                    <div className="absolute bottom-2 left-2 right-2 text-center">
-                      <span className="text-[11px] text-amber-200/80 font-mono tracking-widest uppercase">
-                        ID #{revealedPersonality.id} of 50
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#060C1E] via-transparent to-transparent opacity-60" />
+                    <div className="absolute bottom-2.5 left-2.5 right-2.5 text-center">
+                      <span className="text-[11px] text-blue-200 font-mono tracking-widest uppercase bg-black/60 px-2 py-0.5 rounded-md backdrop-blur-md border border-white/10">
+                        Personality #{revealedPersonality.id} of 50
                       </span>
                     </div>
                   </div>
@@ -401,13 +433,15 @@ export const RevealModal: React.FC<RevealModalProps> = ({
 
                 {/* Information Column */}
                 <div className="md:col-span-7 space-y-4">
-                  {/* Category & Lifetime unboxed metadata */}
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-amber-300/80 font-medium tracking-wide">
-                    <span>{revealedPersonality.category}</span>
-                    <span aria-hidden="true">·</span>
-                    <span>{revealedPersonality.nationality}</span>
-                    <span aria-hidden="true">·</span>
-                    <span className="font-mono text-slate-300">
+                  {/* Category & Lifetime badges */}
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#0052FF]/15 text-blue-300 border border-[#0052FF]/30 font-semibold">
+                      {revealedPersonality.category}
+                    </span>
+                    <span className="text-slate-400">·</span>
+                    <span className="text-slate-300 font-medium">{revealedPersonality.nationality}</span>
+                    <span className="text-slate-400">·</span>
+                    <span className="font-mono text-cyan-300">
                       {revealedPersonality.birthDate}
                       {revealedPersonality.deathDate
                         ? ` — ${revealedPersonality.deathDate}`
@@ -416,26 +450,26 @@ export const RevealModal: React.FC<RevealModalProps> = ({
                   </div>
 
                   {/* Full Name */}
-                  <h2 className="font-cinzel text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+                  <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight">
                     {revealedPersonality.name}
                   </h2>
 
                   {/* Profession */}
-                  <p className="font-editorial italic text-amber-100 text-lg sm:text-xl">
+                  <p className="font-sans-clean font-medium text-blue-200 text-base sm:text-lg">
                     {revealedPersonality.profession}
                   </p>
 
-                  {/* Quote if available */}
+                  {/* Historical Quote */}
                   {revealedPersonality.quote && (
-                    <blockquote className="p-3.5 rounded-lg bg-amber-500/5 border-l-2 border-amber-400 text-xs sm:text-sm italic text-amber-200/90 leading-relaxed font-editorial">
+                    <blockquote className="p-3.5 rounded-xl bg-[#0052FF]/10 border-l-3 border-[#0052FF] text-xs sm:text-sm italic text-blue-100 leading-relaxed font-sans-clean">
                       "{revealedPersonality.quote}"
                     </blockquote>
                   )}
 
-                  {/* Biography (4-5 engaging sentences) */}
-                  <div className="space-y-2">
-                    <h3 className="text-xs uppercase tracking-widest text-slate-400 font-semibold">
-                      Life & Legacy
+                  {/* Biography (4-5 sentences) */}
+                  <div className="space-y-1.5">
+                    <h3 className="text-xs uppercase tracking-widest text-slate-400 font-bold">
+                      Life & Impact
                     </h3>
                     <p className="text-slate-300 text-sm leading-relaxed font-normal">
                       {revealedPersonality.biography}
@@ -443,14 +477,14 @@ export const RevealModal: React.FC<RevealModalProps> = ({
                   </div>
 
                   {/* Major Achievements */}
-                  <div className="space-y-2 pt-2">
-                    <h3 className="text-xs uppercase tracking-widest text-slate-400 font-semibold">
-                      Major Achievements
+                  <div className="space-y-1.5 pt-1">
+                    <h3 className="text-xs uppercase tracking-widest text-slate-400 font-bold">
+                      Key Milestones
                     </h3>
                     <ul className="space-y-1.5 text-xs text-slate-300">
                       {revealedPersonality.majorAchievements.map((item, idx) => (
                         <li key={idx} className="flex items-start gap-2">
-                          <span className="text-amber-400 shrink-0 mt-0.5">✦</span>
+                          <span className="text-[#0052FF] font-bold shrink-0 mt-0.5">✦</span>
                           <span>{item}</span>
                         </li>
                       ))}
@@ -460,33 +494,33 @@ export const RevealModal: React.FC<RevealModalProps> = ({
               </div>
 
               {/* Action Buttons: MEET ANOTHER & SHARE THIS LIFE */}
-              <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="pt-6 border-t border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-4">
                 <button
                   onClick={handleMeetAnother}
-                  className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 text-slate-950 font-cinzel text-xs font-bold uppercase tracking-widest rounded-lg hover:from-amber-200 hover:to-amber-400 shadow-lg shadow-amber-500/10 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full sm:w-auto px-6 py-3.5 bg-[#0052FF] hover:bg-[#1A65FF] text-white font-display text-xs font-black uppercase tracking-widest rounded-xl shadow-lg shadow-[#0052FF]/25 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <RotateCcw className="w-4 h-4" />
-                  <span>MEET ANOTHER</span>
+                  <span>DISCOVER ANOTHER LIFE</span>
                 </button>
 
                 <div className="w-full sm:w-auto flex items-center gap-2">
                   <button
                     onClick={handleShareOnX}
-                    className="flex-1 sm:flex-initial px-4 py-3 bg-slate-900 border border-amber-500/30 text-amber-200 hover:text-white hover:bg-slate-800 text-xs font-semibold tracking-wider uppercase rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    className="flex-1 sm:flex-initial px-4 py-3.5 bg-slate-900 border border-[#0052FF]/30 text-blue-200 hover:text-white hover:bg-slate-800 text-xs font-bold tracking-wider uppercase rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    <Share2 className="w-4 h-4 text-amber-400" />
-                    <span>SHARE THIS LIFE</span>
+                    <Share2 className="w-4 h-4 text-[#38BDF8]" />
+                    <span>SHARE DISCOVERY</span>
                   </button>
 
                   <button
                     onClick={handleCopyLink}
-                    className="px-3.5 py-3 bg-slate-900 border border-white/10 text-slate-300 hover:text-white hover:bg-slate-800 text-xs rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                    title="Copy share text to clipboard"
+                    className="px-3.5 py-3.5 bg-slate-900 border border-white/10 text-slate-300 hover:text-white hover:bg-slate-800 text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer font-medium"
+                    title="Copy discovery text to clipboard"
                   >
                     {copiedLink ? (
                       <>
                         <Check className="w-4 h-4 text-emerald-400" />
-                        <span className="text-emerald-400 text-xs">Copied!</span>
+                        <span className="text-emerald-400 text-xs">Copied</span>
                       </>
                     ) : (
                       <>

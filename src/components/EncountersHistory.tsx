@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
-import { History, Sparkles, Trash2, ExternalLink, Calendar, Compass, Shield } from 'lucide-react';
+import { History, Sparkles, Trash2, ExternalLink, Calendar, Compass, Shield, Lock, UserCheck } from 'lucide-react';
 import { EncounterRecord } from '../types';
 import {
   getDemoEncounters,
   clearDemoEncounters,
   getChainEncounters,
 } from '../lib/encountersStorage';
+import { clearAnonymousActivityHistory } from '../lib/anonymousAnalytics';
 import { getPersonalityById } from '../lib/random';
 import { formatDate, getInitials } from '../lib/utils';
 import { getBaseScanTxUrl, shortenAddress } from '../lib/blockchain';
@@ -17,23 +18,24 @@ import { Personality } from '../types';
 interface EncountersHistoryProps {
   onTriggerReveal: () => void;
   refreshTrigger: number;
+  onOpenPrivacyModal?: () => void;
 }
 
 export const EncountersHistory: React.FC<EncountersHistoryProps> = ({
   onTriggerReveal,
   refreshTrigger,
+  onOpenPrivacyModal,
 }) => {
   const { address, isConnected } = useAccount();
-  const [activeTab, setActiveTab] = useState<'demo' | 'chain'>('demo');
-  const [demoRecords, setDemoRecords] = useState<EncounterRecord[]>([]);
+  const [activeTab, setActiveTab] = useState<'local' | 'chain'>('local');
+  const [localRecords, setLocalRecords] = useState<EncounterRecord[]>([]);
   const [chainRecords, setChainRecords] = useState<EncounterRecord[]>([]);
   const [selectedPersonality, setSelectedPersonality] = useState<Personality | null>(null);
 
   useEffect(() => {
-    setDemoRecords(getDemoEncounters());
+    setLocalRecords(getDemoEncounters());
     if (address) {
       setChainRecords(getChainEncounters(address));
-      // If user has blockchain encounters, default to chain tab
       const userChain = getChainEncounters(address);
       if (userChain.length > 0) {
         setActiveTab('chain');
@@ -41,14 +43,15 @@ export const EncountersHistory: React.FC<EncountersHistoryProps> = ({
     }
   }, [address, refreshTrigger]);
 
-  const handleClearDemo = () => {
-    if (window.confirm('Clear all demo encounter history?')) {
+  const handleClearHistory = () => {
+    if (window.confirm('Clear your local encounter history? This action also rotates your anonymous browser ID.')) {
+      clearAnonymousActivityHistory();
       clearDemoEncounters();
-      setDemoRecords([]);
+      setLocalRecords([]);
     }
   };
 
-  const recordsToShow = activeTab === 'demo' ? demoRecords : chainRecords;
+  const recordsToShow = activeTab === 'local' ? localRecords : chainRecords;
 
   // Calculate unique personalities met
   const uniquePersonalityCount = new Set(recordsToShow.map((r) => r.personalityId)).size;
@@ -64,7 +67,7 @@ export const EncountersHistory: React.FC<EncountersHistoryProps> = ({
           MY ENCOUNTERS
         </h2>
         <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-          Review your journey through history. Each encounter preserves a fleeting collision of minds.
+          Review your journey through history. Private, anonymous, and preserved only on your device or verified on Base.
         </p>
       </div>
 
@@ -72,15 +75,15 @@ export const EncountersHistory: React.FC<EncountersHistoryProps> = ({
       <div className="flex items-center justify-center gap-3 mb-8">
         <div className="flex p-1 bg-slate-950/80 border border-white/10 rounded-xl">
           <button
-            onClick={() => setActiveTab('demo')}
+            onClick={() => setActiveTab('local')}
             className={`px-4 py-2 text-xs font-medium rounded-lg transition-all flex items-center gap-2 cursor-pointer ${
-              activeTab === 'demo'
+              activeTab === 'local'
                 ? 'bg-amber-400 text-slate-950 font-bold shadow-sm'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>DEMO HISTORY ({demoRecords.length})</span>
+            <Lock className="w-3.5 h-3.5" />
+            <span>MY DISCOVERIES ({localRecords.length})</span>
           </button>
 
           <button
@@ -92,27 +95,30 @@ export const EncountersHistory: React.FC<EncountersHistoryProps> = ({
             }`}
           >
             <Shield className="w-3.5 h-3.5 text-blue-300" />
-            <span>BLOCKCHAIN ON-CHAIN ({chainRecords.length})</span>
+            <span>ON-CHAIN ARCHIVE (BASE) ({chainRecords.length})</span>
           </button>
         </div>
       </div>
 
-      {/* Mode Banner / Disclaimer */}
-      {activeTab === 'demo' ? (
-        <div className="flex flex-col sm:flex-row items-center justify-between p-3.5 mb-8 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200/90 max-w-3xl mx-auto gap-3">
+      {/* Mode Banner / Privacy Information */}
+      {activeTab === 'local' ? (
+        <div className="flex flex-col sm:flex-row items-center justify-between p-3.5 mb-8 rounded-xl bg-slate-950/90 border border-amber-500/20 text-xs text-amber-200/90 max-w-3xl mx-auto gap-3">
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded bg-amber-400 text-slate-950 font-bold uppercase text-[10px]">
-              DEMO HISTORY
+            <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 font-mono text-[10px] border border-emerald-500/30">
+              PRIVATE & ISOLATED
             </span>
-            <span>Recorded locally in browser. No gas or blockchain transactions used.</span>
+            <span className="text-slate-300">
+              Preserved locally in your browser. Never shared with or visible to any other visitor.
+            </span>
           </div>
-          {demoRecords.length > 0 && (
+          {localRecords.length > 0 && (
             <button
-              onClick={handleClearDemo}
-              className="text-xs text-rose-300 hover:text-rose-200 flex items-center gap-1 shrink-0"
+              onClick={handleClearHistory}
+              className="text-xs text-rose-300 hover:text-rose-200 flex items-center gap-1 shrink-0 cursor-pointer transition-colors"
+              title="Clear encounters and rotate anonymous ID"
             >
               <Trash2 className="w-3.5 h-3.5" />
-              <span>Clear Demo History</span>
+              <span>Clear History</span>
             </button>
           )}
         </div>
@@ -159,10 +165,10 @@ export const EncountersHistory: React.FC<EncountersHistoryProps> = ({
       {recordsToShow.length === 0 ? (
         <div className="text-center py-16 bg-slate-950/50 border border-white/5 rounded-2xl max-w-xl mx-auto px-6">
           <Compass className="w-12 h-12 text-amber-400/50 mx-auto mb-4 animate-spin-slow" />
-          <h3 className="font-cinzel text-xl font-bold text-white mb-2">No Encounters Yet</h3>
+          <h3 className="font-cinzel text-xl font-bold text-white mb-2">No Encounters Recorded Yet</h3>
           <p className="text-slate-400 text-sm mb-6 leading-relaxed">
-            {activeTab === 'demo'
-              ? 'Press REVEAL MY DESTINY to experience your first historical encounter in Demo Mode.'
+            {activeTab === 'local'
+              ? 'Press REVEAL MY DESTINY to experience your first historical encounter in private discovery.'
               : 'Connect your wallet and complete an on-chain reveal to record your first Base transaction encounter.'}
           </p>
           <button
