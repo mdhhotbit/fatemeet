@@ -1,6 +1,6 @@
 {
   "name": "FATE MEET",
-  "description": "LuckyFace - Every click reveals a life. Discover 50 extraordinary personalities who shaped our world on the Base blockchain.",
+  "description": "BASE GUESTBOOK — Your Words. Forever on Base. One transaction. One sentence. Permanently recorded on the Base blockchain.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
